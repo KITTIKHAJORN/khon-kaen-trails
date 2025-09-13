@@ -1,3 +1,6 @@
+/* Import AOS styles */
+@import 'aos/dist/aos.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,9 +8,6 @@
 /* Khon Kaen Tourism Website Design System
 All colors MUST be HSL. Primary: #913423 (แดงเลือดหมู), Accent: Gold & White
 */
-
-/* Import AOS styles */
-@import 'aos/dist/aos.css';
 
 @layer base {
   :root {

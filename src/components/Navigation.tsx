@@ -3,11 +3,14 @@ import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Menu, X, MapPin } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export const Navigation: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,8 +30,13 @@ export const Navigation: React.FC = () => {
     { key: 'nav.tours', href: '/tours' },
     { key: 'nav.blog', href: '/blog' },
     { key: 'nav.booking', href: '/booking' },
-    { key: 'nav.contact', href: '/contact' },
+    // Removed contact menu item as requested
   ];
+
+  const handleNavigation = (href: string) => {
+    navigate(href);
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -39,7 +47,7 @@ export const Navigation: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigation('/')}>
             <div className="w-10 h-10 bg-hero-gradient rounded-lg flex items-center justify-center shadow-warm">
               <MapPin className="h-6 w-6 text-white" />
             </div>
@@ -55,16 +63,17 @@ export const Navigation: React.FC = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-1">
-            {navItems.map((item, index) => (
+            {navItems.map((item) => (
               <Button
                 key={item.key}
                 variant="ghost"
                 size="sm"
-                className="text-foreground hover:text-primary hover:bg-accent transition-all duration-200"
-                onClick={() => {
-                  // Navigation will be implemented later
-                  console.log(`Navigate to ${item.href}`);
-                }}
+                className={`text-foreground hover:text-primary hover:bg-accent transition-all duration-200 ${
+                  location.pathname === item.href 
+                    ? 'text-primary font-medium' 
+                    : ''
+                }`}
+                onClick={() => handleNavigation(item.href)}
               >
                 {t(item.key)}
               </Button>
@@ -100,12 +109,12 @@ export const Navigation: React.FC = () => {
                   key={item.key}
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start text-left hover:bg-accent"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    // Navigation will be implemented later
-                    console.log(`Navigate to ${item.href}`);
-                  }}
+                  className={`w-full justify-start text-left hover:bg-accent ${
+                    location.pathname === item.href 
+                      ? 'text-primary font-medium' 
+                      : ''
+                  }`}
+                  onClick={() => handleNavigation(item.href)}
                 >
                   {t(item.key)}
                 </Button>

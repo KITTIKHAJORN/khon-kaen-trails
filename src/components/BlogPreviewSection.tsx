@@ -136,6 +136,7 @@ export const BlogPreviewSection: React.FC = () => {
                 <img
                   src={featuredPost.image}
                   alt={isEnglish ? featuredPost.titleEn : featuredPost.title}
+                  loading="lazy"
                   className="w-full h-64 lg:h-80 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-4 left-4">
@@ -204,6 +205,7 @@ export const BlogPreviewSection: React.FC = () => {
                   <img
                     src={post.image}
                     alt={isEnglish ? post.titleEn : post.title}
+                    loading="lazy"
                     className="w-24 h-24 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <CardContent className="flex-1 p-4">
