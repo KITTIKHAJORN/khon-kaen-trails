@@ -4,8 +4,12 @@ import { HeroSection } from '@/components/HeroSection';
 import { PopularDestinations } from '@/components/PopularDestinations';
 import { EventsSection } from '@/components/EventsSection';
 import { WeatherWidget } from '@/components/WeatherWidget';
+import { ToursSection } from '@/components/ToursSection';
+import { TestimonialsSection } from '@/components/TestimonialsSection';
+import { BlogPreviewSection } from '@/components/BlogPreviewSection';
 import { AdvertisementSection } from '@/components/AdvertisementSection';
 import { Footer } from '@/components/Footer';
+import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 
 const Index = () => {
   return (
@@ -16,9 +20,13 @@ const Index = () => {
         <PopularDestinations />
         <WeatherWidget />
         <EventsSection />
+        <ToursSection />
+        <TestimonialsSection />
+        <BlogPreviewSection />
         <AdvertisementSection />
       </main>
       <Footer />
+      <ScrollToTopButton />
     </div>
   );
 };
