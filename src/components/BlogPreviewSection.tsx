@@ -1,9 +1,9 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Calendar, Clock, User, Eye, ArrowRight } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, Eye, User } from 'lucide-react';
+import React from 'react';
 
 interface BlogPost {
   id: number;

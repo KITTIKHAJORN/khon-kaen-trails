@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
+import { Navigation } from '@/components/Navigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { Calendar, MapPin, Clock, Users, Star, Ticket, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { EmailVerificationModal } from '@/components/EmailVerificationModal';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Calendar, Clock, MapPin, Plus, Ticket, Users } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Events = () => {
   const { t } = useLanguage();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState('');
 
   // Sample data for events
@@ -81,18 +81,10 @@ const Events = () => {
   ];
 
   const handleCreateEvent = () => {
-    setIsCreateModalOpen(true);
+    navigate('/create-event');
   };
 
-  const handleVerify = (email: string, otp: string) => {
-    // In a real app, you would verify the OTP with your backend
-    console.log('Email verified:', email, 'OTP:', otp);
-    setUserEmail(email);
-    setIsCreateModalOpen(false);
-    
-    // Redirect to event creation form or show success message
-    alert(`ยืนยันตัวตนสำเร็จ! คุณสามารถสร้างงานเทศกาลด้วยอีเมล ${email} ได้แล้ว`);
-  };
+  // verification now happens on the create page if needed
 
   return (
     <div className="min-h-screen bg-background">
@@ -345,13 +337,7 @@ const Events = () => {
       <Footer />
       <ScrollToTopButton />
       
-      {/* Email Verification Modal */}
-      <EmailVerificationModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onVerify={handleVerify}
-        entityType="งานเทศกาล"
-      />
+      {/* Creation is handled on a dedicated page */}
     </div>
   );
 };

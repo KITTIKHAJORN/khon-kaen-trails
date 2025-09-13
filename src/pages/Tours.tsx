@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
+import { Navigation } from '@/components/Navigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { MapPin, Clock, Users, Star, Plus, Filter, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { EmailVerificationModal } from '@/components/EmailVerificationModal';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Clock, Filter, MapPin, Plus, Search, Star } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Tours = () => {
   const { t } = useLanguage();
   const [viewMode, setViewMode] = useState('grid');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState('');
 
   // Sample data for tours
@@ -74,18 +74,10 @@ const Tours = () => {
   ];
 
   const handleCreateTour = () => {
-    setIsCreateModalOpen(true);
+    navigate('/create-tour');
   };
 
-  const handleVerify = (email: string, otp: string) => {
-    // In a real app, you would verify the OTP with your backend
-    console.log('Email verified:', email, 'OTP:', otp);
-    setUserEmail(email);
-    setIsCreateModalOpen(false);
-    
-    // Redirect to tour creation form or show success message
-    alert(`ยืนยันตัวตนสำเร็จ! คุณสามารถสร้างทัวร์ด้วยอีเมล ${email} ได้แล้ว`);
-  };
+  // verification now happens on the create page if needed
 
   return (
     <div className="min-h-screen bg-background">
@@ -345,13 +337,7 @@ const Tours = () => {
       <Footer />
       <ScrollToTopButton />
       
-      {/* Email Verification Modal */}
-      <EmailVerificationModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onVerify={handleVerify}
-        entityType="ทัวร์"
-      />
+      {/* Creation is handled on a dedicated page */}
     </div>
   );
 };

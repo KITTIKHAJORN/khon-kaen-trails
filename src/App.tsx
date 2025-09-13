@@ -1,25 +1,28 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
 // Import all page components
-import Explore from "./pages/Explore";
-import Map from "./pages/Map";
-import Itinerary from "./pages/Itinerary";
-import Events from "./pages/Events";
-import Tours from "./pages/Tours";
 import Blog from "./pages/Blog";
 import Booking from "./pages/Booking";
+import CreateBlog from "./pages/CreateBlog";
+import CreateEvent from "./pages/CreateEvent";
+import CreateTour from "./pages/CreateTour";
+import Events from "./pages/Events";
+import Explore from "./pages/Explore";
+import Itinerary from "./pages/Itinerary";
+import Map from "./pages/Map";
+import Tours from "./pages/Tours";
 
 // Removed Contact import as requested
 
-import { useEffect } from 'react';
 import AOS from 'aos';
+import { useEffect } from 'react';
 
 const queryClient = new QueryClient();
 
@@ -43,6 +46,9 @@ const AppContent = () => {
       <Route path="/events" element={<Events />} />
       <Route path="/tours" element={<Tours />} />
       <Route path="/blog" element={<Blog />} />
+  <Route path="/create-blog" element={<CreateBlog />} />
+  <Route path="/create-tour" element={<CreateTour />} />
+  <Route path="/create-event" element={<CreateEvent />} />
       <Route path="/booking" element={<Booking />} />
       {/* Removed Contact route as requested */}
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

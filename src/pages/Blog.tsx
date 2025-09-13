@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
-import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
+import { Navigation } from '@/components/Navigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { Calendar, User, Tag, Search, Clock, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { EmailVerificationModal } from '@/components/EmailVerificationModal';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Calendar, Clock, Plus, Search, User } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Blog = () => {
   const { t } = useLanguage();
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
+  const navigate = useNavigate();
 
   // Sample data for blog posts
   const blogPosts = [
@@ -67,18 +65,11 @@ const Blog = () => {
   const categories = ['ทั้งหมด', 'คาเฟ่', 'ทริป', 'วัฒนธรรม', 'อาหาร', 'ธรรมชาติ'];
 
   const handleCreateBlog = () => {
-    setIsCreateModalOpen(true);
+    // Navigate to the create blog page where users can fill the form
+    navigate('/create-blog');
   };
 
-  const handleVerify = (email: string, otp: string) => {
-    // In a real app, you would verify the OTP with your backend
-    console.log('Email verified:', email, 'OTP:', otp);
-    setUserEmail(email);
-    setIsCreateModalOpen(false);
-    
-    // Redirect to blog creation form or show success message
-    alert(`ยืนยันตัวตนสำเร็จ! คุณสามารถสร้างบทความด้วยอีเมล ${email} ได้แล้ว`);
-  };
+  // verification now happens on the create page if needed
 
   return (
     <div className="min-h-screen bg-background">
@@ -316,13 +307,7 @@ const Blog = () => {
       <Footer />
       <ScrollToTopButton />
       
-      {/* Email Verification Modal */}
-      <EmailVerificationModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onVerify={handleVerify}
-        entityType="บทความ"
-      />
+      {/* Creation is handled on a dedicated page */}
     </div>
   );
 };
