@@ -1,8 +1,8 @@
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LogoIcon } from '@/components/LogoIcon';
 import { useLanguage } from '@/contexts/LanguageContext';
+
 import { 
   Phone, 
   Mail, 
@@ -10,8 +10,9 @@ import {
   Instagram, 
   Youtube,
   Send,
-  Heart
+  Youtube
 } from 'lucide-react';
+import React from 'react';
 
 export const Footer: React.FC = () => {
   const { t } = useLanguage();
@@ -27,30 +28,7 @@ export const Footer: React.FC = () => {
   return (
     <footer className="bg-primary text-primary-foreground">
       <div className="container mx-auto px-4">
-        {/* Newsletter Section */}
-        <div className="py-12 border-b border-primary-light/20">
-          <div className="max-w-4xl mx-auto text-center" data-aos="fade-up">
-            <h3 className="text-2xl font-bold mb-4">
-              {t('newsletter.title')}
-            </h3>
-            <p className="text-primary-foreground/80 mb-6 max-w-2xl mx-auto">
-              {t('newsletter.subtitle')}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <Input
-                type="email"
-                placeholder={t('newsletter.email')}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white/40"
-              />
-              <Button 
-                className="bg-secondary hover:bg-secondary-light text-secondary-foreground whitespace-nowrap shadow-gold"
-              >
-                <Send className="mr-2 h-4 w-4" />
-                {t('newsletter.subscribe')}
-              </Button>
-            </div>
-          </div>
-        </div>
+
 
         {/* Main Footer Content */}
         <div className="py-12">
