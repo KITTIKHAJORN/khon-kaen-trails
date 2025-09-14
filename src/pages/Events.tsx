@@ -3,23 +3,32 @@ import { Navigation } from '@/components/Navigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Calendar, Clock, MapPin, Plus, Ticket, Users } from 'lucide-react';
-import { useState } from 'react';
+import { Calendar, Clock, MapPin, Plus, Users, X, DollarSign } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Events = () => {
   const { t } = useLanguage();
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(8); // กันยายน 2024 (index 8 = September)
+  const [selectedYear, setSelectedYear] = useState(2024);
   const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState('');
+  const [customEvents, setCustomEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showEventDetail, setShowEventDetail] = useState(false);
+
+  // โหลดข้อมูลจาก localStorage เมื่อ component mount
+  useEffect(() => {
+    const savedEvents = JSON.parse(localStorage.getItem('khonKaenEvents') || '[]');
+    setCustomEvents(savedEvents);
+  }, []);
 
   // Sample data for events
-  const events = [
+  const sampleEvents = [
     {
       id: 1,
       title: 'งานบุญบั้งไฟขอนแก่น',
-      date: '2024-04-15',
+      date: '2024-09-14', // เปลี่ยนเป็นวันที่ 14 กันยายน
       time: '18:00 - 22:00',
       location: 'สนามกีฬากลางขอนแก่น',
       image: 'https://placehold.co/400x300',
@@ -31,7 +40,7 @@ const Events = () => {
     {
       id: 2,
       title: 'งานเทศกาลผลไม้ขอนแก่น',
-      date: '2024-05-10',
+      date: '2024-09-15', // เปลี่ยนเป็นวันที่ 15 กันยายน
       time: '09:00 - 17:00',
       location: 'ศูนย์แสดงสินค้าขอนแก่น',
       image: 'https://placehold.co/400x300',
@@ -43,7 +52,7 @@ const Events = () => {
     {
       id: 3,
       title: 'คอนเสิร์ตกลางเมือง',
-      date: '2024-06-20',
+      date: '2024-09-19', // เปลี่ยนเป็นวันที่ 19 กันยายน
       time: '19:00 - 22:00',
       location: 'สวนสาธารณะแก่นนคร',
       image: 'https://placehold.co/400x300',
@@ -53,6 +62,9 @@ const Events = () => {
       createdBy: 'user@example.com'
     },
   ];
+
+  // รวม sample events กับ custom events จาก localStorage
+  const events = [...customEvents, ...sampleEvents];
 
   // Generate calendar data
   const generateCalendarDays = () => {
@@ -84,7 +96,52 @@ const Events = () => {
     navigate('/create-event');
   };
 
-  // verification now happens on the create page if needed
+  const handleViewDetails = (event) => {
+    setSelectedEvent(event);
+    setShowEventDetail(true);
+  };
+
+  const closeEventDetail = () => {
+    setShowEventDetail(false);
+    setSelectedEvent(null);
+  };
+
+  const formatPrice = (price) => {
+    if (!price || price === '0' || price === 0) {
+      return 'Free';
+    }
+    return `${price} บาท`;
+  };
+
+  // ฟังก์ชันใหม่สำหรับการ highlight ปฏิทิน
+  const hasEventsOnDate = (day) => {
+    if (!day) return false;
+    
+    // สร้าง string วันที่ในรูปแบบ YYYY-MM-DD โดยไม่ใช้ timezone
+    const yearStr = selectedYear.toString();
+    const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
+    const dayStr = day.toString().padStart(2, '0');
+    const dateString = `${yearStr}-${monthStr}-${dayStr}`;
+    
+    // ตรวจสอบว่ามี event ในวันนั้นหรือไม่
+    return events.some(event => {
+      return event.date === dateString;
+    });
+  };
+
+  // ดึงข้อมูล event ที่จัดขึ้นในวันที่ระบุ
+  const getEventsForDate = (day) => {
+    if (!day) return [];
+    
+    const yearStr = selectedYear.toString();
+    const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
+    const dayStr = day.toString().padStart(2, '0');
+    const dateString = `${yearStr}-${monthStr}-${dayStr}`;
+    
+    return events.filter(event => {
+      return event.date === dateString;
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -163,7 +220,7 @@ const Events = () => {
                   
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">
-                      {monthNames[selectedMonth]} {selectedYear + 543}
+                      {monthNames[selectedMonth]} {selectedYear}
                     </h3>
                   </div>
                   
@@ -176,24 +233,37 @@ const Events = () => {
                   </div>
                   
                   <div className="grid grid-cols-7 gap-1">
-                    {calendarDays.map((day, index) => (
-                      <div 
-                        key={index} 
-                        className={`h-10 flex items-center justify-center rounded-lg text-sm ${
-                          day 
-                            ? 'hover:bg-muted cursor-pointer' 
-                            : ''
-                        } ${
-                          day === new Date().getDate() && 
-                          selectedMonth === new Date().getMonth() && 
-                          selectedYear === new Date().getFullYear()
-                            ? 'bg-primary text-white'
-                            : ''
-                        }`}
-                      >
-                        {day}
-                      </div>
-                    ))}
+                    {calendarDays.map((day, index) => {
+                      const hasEvents = hasEventsOnDate(day);
+                      const eventsOnThisDate = getEventsForDate(day);
+                      
+                      return (
+                        <div 
+                          key={index} 
+                          className={`h-10 flex items-center justify-center rounded-lg text-sm relative ${
+                            day 
+                              ? 'hover:bg-muted' 
+                              : ''
+                          } ${
+                            day === new Date().getDate() && 
+                            selectedMonth === new Date().getMonth() && 
+                            selectedYear === new Date().getFullYear()
+                              ? 'bg-primary text-white'
+                              : ''
+                          } ${
+                            hasEvents
+                              ? 'bg-yellow-100 border-2 border-yellow-400 text-yellow-800 font-semibold'
+                              : ''
+                          }`}
+                          title={hasEvents ? `${eventsOnThisDate.length} กิจกรรมในวันนี้: ${eventsOnThisDate.map(e => e.title).join(', ')}` : ''}
+                        >
+                          {day}
+                          {hasEvents && (
+                            <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                   
                   {/* Event Categories */}
@@ -218,7 +288,9 @@ const Events = () => {
               {/* Events List */}
               <div className="lg:col-span-2">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-3xl font-bold">กิจกรรมที่กำลังจะมาถึง</h2>
+                  <div>
+                    <h2 className="text-3xl font-bold">กิจกรรมที่กำลังจะมาถึง</h2>
+                  </div>
                   <div className="flex gap-2">
                     <Button variant="outline">ทั้งหมด</Button>
                     <Button variant="outline">เรียงตามวันที่</Button>
@@ -226,7 +298,14 @@ const Events = () => {
                 </div>
                 
                 <div className="space-y-6">
-                  {events.map((event) => (
+                  {events.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="text-muted-foreground">
+                        ไม่มีกิจกรรมในขณะนี้
+                      </div>
+                    </div>
+                  ) : (
+                    events.map((event) => (
                     <div 
                       key={event.id} 
                       className="bg-card rounded-xl overflow-hidden shadow-sm border border-border hover:shadow-md transition-all"
@@ -250,7 +329,12 @@ const Events = () => {
                           <div className="space-y-2 mb-4">
                             <div className="flex items-center text-sm text-muted-foreground">
                               <Calendar className="h-4 w-4 mr-2" />
-                              <span>{new Date(event.date).toLocaleDateString('th-TH')}</span>
+                              <span>{new Date(event.date).toLocaleDateString('th-TH', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                calendar: 'gregory'
+                              })}</span>
                             </div>
                             <div className="flex items-center text-sm text-muted-foreground">
                               <Clock className="h-4 w-4 mr-2" />
@@ -267,24 +351,15 @@ const Events = () => {
                           </div>
                           
                           <div className="flex flex-wrap gap-3">
-                            {event.isRegistered ? (
-                              <Button variant="outline" disabled>
-                                ลงทะเบียนแล้ว
-                              </Button>
-                            ) : (
-                              <Button>
-                                <Ticket className="mr-2 h-4 w-4" />
-                                ลงทะเบียน
-                              </Button>
-                            )}
-                            <Button variant="outline">
+                            <Button variant="outline" onClick={() => handleViewDetails(event)}>
                               ดูรายละเอียด
                             </Button>
                           </div>
                         </div>
                       </div>
                     </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -317,14 +392,19 @@ const Events = () => {
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4 mr-2" />
-                        <span>{new Date(event.date).toLocaleDateString('th-TH')}</span>
+                        <span>{new Date(event.date).toLocaleDateString('th-TH', {
+                          year: 'numeric',
+                          month: '2-digit', 
+                          day: '2-digit',
+                          calendar: 'gregory'
+                        })}</span>
                       </div>
                       <div className="flex items-center text-sm text-muted-foreground">
                         <MapPin className="h-4 w-4 mr-2" />
                         <span>{event.location}</span>
                       </div>
                     </div>
-                    <Button className="w-full">
+                    <Button className="w-full" onClick={() => handleViewDetails(event)}>
                       ดูรายละเอียด
                     </Button>
                   </div>
@@ -336,6 +416,111 @@ const Events = () => {
       </main>
       <Footer />
       <ScrollToTopButton />
+      
+      {/* Event Detail Modal */}
+      {showEventDetail && selectedEvent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground mb-2">{selectedEvent.title}</h2>
+                  <span className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full">
+                    {selectedEvent.category}
+                  </span>
+                </div>
+                <button
+                  onClick={closeEventDetail}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              {/* Image */}
+              <div className="mb-6">
+                <img 
+                  src={selectedEvent.image} 
+                  alt={selectedEvent.title}
+                  className="w-full h-64 object-cover rounded-xl"
+                />
+              </div>
+              
+              {/* Event Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">ข้อมูลงาน</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center text-sm">
+                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span>{new Date(selectedEvent.date).toLocaleDateString('th-TH', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit', 
+                        calendar: 'gregory'
+                      })}</span>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span>{selectedEvent.time}</span>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span>{selectedEvent.location}</span>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span>{selectedEvent.attendees?.toLocaleString() || 0} คนเข้าร่วม</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Pricing */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">ค่าเข้าร่วม</h3>
+                  {selectedEvent.isFreeEvent ? (
+                    <div className="text-green-600 font-semibold text-lg">เข้าร่วมฟรี</div>
+                  ) : selectedEvent.packages && selectedEvent.packages.length > 0 ? (
+                    <div className="space-y-2">
+                      {selectedEvent.packages.map((pkg, index) => (
+                        <div key={pkg.id || index} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                          <div>
+                            <div className="font-medium">{pkg.name || `แพ็คเกจที่ ${index + 1}`}</div>
+                            {pkg.description && (
+                              <div className="text-sm text-muted-foreground">{pkg.description}</div>
+                            )}
+                          </div>
+                          <div className={`font-semibold ${pkg.price === '0' || !pkg.price ? 'text-green-600' : 'text-primary'}`}>
+                            {formatPrice(pkg.price)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-muted-foreground">ไม่ระบุข้อมูลราคา</div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Description */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3">รายละเอียด</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {selectedEvent.description || 'ไม่มีรายละเอียด'}
+                </p>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-3">
+                <Button variant="outline" onClick={closeEventDetail}>
+                  ปิด
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Creation is handled on a dedicated page */}
     </div>
