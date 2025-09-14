@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { LogoIcon } from '@/components/LogoIcon';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Menu, X, MapPin } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export const Navigation: React.FC = () => {
@@ -48,7 +49,7 @@ export const Navigation: React.FC = () => {
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigation('/')}>
             <div className="w-10 h-10 bg-hero-gradient rounded-lg flex items-center justify-center shadow-warm">
-              <MapPin className="h-6 w-6 text-white" />
+              <LogoIcon className="text-white" />
             </div>
             <div className="hidden sm:block">
               <h1 className="text-xl font-bold text-primary">
