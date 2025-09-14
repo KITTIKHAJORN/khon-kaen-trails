@@ -1,13 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { LogoIcon } from '@/components/LogoIcon';
 import { useLanguage } from '@/contexts/LanguageContext';
-import {
-  Facebook,
-  Heart,
-  Instagram,
-  Mail,
-  MapPin,
-  Phone,
+
+import { 
+  Phone, 
+  Mail, 
+  Facebook, 
+  Instagram, 
+  Youtube,
   Send,
   Youtube
 } from 'lucide-react';
@@ -36,7 +37,7 @@ export const Footer: React.FC = () => {
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
-                  <MapPin className="h-6 w-6 text-secondary-foreground" />
+                  <LogoIcon className="text-secondary-foreground" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">ขอนแก่นท่องเที่ยว</h2>
@@ -105,7 +106,9 @@ export const Footer: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <MapPin className="h-4 w-4 mt-0.5 text-secondary" />
+                  <div className="mt-0.5">
+                    <LogoIcon size="sm" className="text-secondary" fallbackIcon="📍" />
+                  </div>
                   <div>
                     <p className="font-medium text-white">{t('footer.contact.address')}</p>
                     <p className="text-sm">
