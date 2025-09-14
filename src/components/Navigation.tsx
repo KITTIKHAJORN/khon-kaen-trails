@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Menu, X, MapPin } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { MapPin, Menu, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export const Navigation: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
