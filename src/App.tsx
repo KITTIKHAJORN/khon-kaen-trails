@@ -16,7 +16,8 @@ import Events from "./pages/Events";
 import Explore from "./pages/Explore";
 import Itinerary from "./pages/Itinerary";
 import Map from "./pages/Map";
-// Tours page removed
+import PlaceDetail from "./pages/PlaceDetail";
+import Tours from "./pages/Tours";
 
 // Removed Contact import as requested
 
@@ -41,9 +42,10 @@ const AppContent = () => {
       <Route path="/" element={<Index />} />
       <Route path="/explore" element={<Explore />} />
       <Route path="/map" element={<Map />} />
+      <Route path="/place/:placeId" element={<PlaceDetail />} />
       <Route path="/itinerary" element={<Itinerary />} />
       <Route path="/events" element={<Events />} />
-  {/* Tours page removed */}
+      <Route path="/tours" element={<Tours />} />
       <Route path="/blog" element={<Blog />} />
   <Route path="/create-blog" element={<CreateBlog />} />
   <Route path="/create-event" element={<CreateEvent />} />

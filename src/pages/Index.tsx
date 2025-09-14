@@ -1,15 +1,14 @@
-import React from 'react';
-import { Navigation } from '@/components/Navigation';
-import { HeroSection } from '@/components/HeroSection';
-import { PopularDestinations } from '@/components/PopularDestinations';
 import { EventsSection } from '@/components/EventsSection';
+import { HeroSection } from '@/components/HeroSection';
+import { Navigation } from '@/components/Navigation';
+import { PopularDestinations } from '@/components/PopularDestinations';
 import { WeatherWidget } from '@/components/WeatherWidget';
 // ToursSection removed
-import { TestimonialsSection } from '@/components/TestimonialsSection';
-import { BlogPreviewSection } from '@/components/BlogPreviewSection';
 import { AdvertisementSection } from '@/components/AdvertisementSection';
+import { BlogPreviewSection } from '@/components/BlogPreviewSection';
 import { Footer } from '@/components/Footer';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
+import { TestimonialsSection } from '@/components/TestimonialsSection';
 
 const Index = () => {
   return (

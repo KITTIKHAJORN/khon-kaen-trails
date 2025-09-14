@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
+import { Navigation } from '@/components/Navigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { MapPin, Calendar, Users, Star, Filter, Search, Bed, Car, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Bed, Calendar, Car, Filter, MapPin, Star, Users } from 'lucide-react';
+import { useState } from 'react';
 
 const Booking = () => {
   const { t } = useLanguage();
