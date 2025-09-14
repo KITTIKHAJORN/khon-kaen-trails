@@ -9,13 +9,19 @@ import { useNavigate } from 'react-router-dom';
 
 const Events = () => {
   const { t } = useLanguage();
-  const [selectedMonth, setSelectedMonth] = useState(8); // กันยายน 2024 (index 8 = September)
-  const [selectedYear, setSelectedYear] = useState(2024);
+  const currentDate = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth()); // ใช้เดือนปัจจุบัน
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear()); // ใช้ปีปัจจุบัน
   const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState('');
   const [customEvents, setCustomEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showEventDetail, setShowEventDetail] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [showDateEvents, setShowDateEvents] = useState(false);
+  const [filterType, setFilterType] = useState('all'); // 'all' หรือ 'sorted'
+  const [selectedCategories, setSelectedCategories] = useState([]); // เก็บหมวดหมู่ที่เลือก
+  const [showPastEvents, setShowPastEvents] = useState(false); // ตัวเลือกแสดงงานที่ผ่านไปแล้ว
 
   // โหลดข้อมูลจาก localStorage เมื่อ component mount
   useEffect(() => {
@@ -64,7 +70,75 @@ const Events = () => {
   ];
 
   // รวม sample events กับ custom events จาก localStorage
-  const events = [...customEvents, ...sampleEvents];
+  const allEvents = [...customEvents, ...sampleEvents];
+
+  // ฟังก์ชันตรวจสอบว่างานผ่านไปแล้วหรือไม่
+  const isEventPast = (eventDate) => {
+    const today = new Date();
+    const eventDateObj = new Date(eventDate);
+    
+    // เปรียบเทียบเฉพาะวันที่ (ไม่รวมเวลา)
+    today.setHours(0, 0, 0, 0);
+    eventDateObj.setHours(0, 0, 0, 0);
+    
+    return eventDateObj < today;
+  };
+
+  // ฟังก์ชันกรองและเรียงลำดับ events
+  const getFilteredAndSortedEvents = () => {
+    let filteredEvents = allEvents;
+    
+    // กรองงานที่ผ่านไปแล้วถ้าไม่เลือกแสดง
+    if (!showPastEvents) {
+      filteredEvents = filteredEvents.filter(event => !isEventPast(event.date));
+    }
+    
+    // กรองตามหมวดหมู่ที่เลือก
+    if (selectedCategories.length > 0) {
+      filteredEvents = filteredEvents.filter(event => 
+        selectedCategories.includes(event.category)
+      );
+    }
+    
+    // เรียงลำดับตามวันที่ถ้าเลือก
+    if (filterType === 'sorted') {
+      filteredEvents = [...filteredEvents].sort((a, b) => {
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      });
+    }
+    
+    return filteredEvents;
+  };
+
+  const events = getFilteredAndSortedEvents();
+
+  // ฟังก์ชันจัดการการเปลี่ยนหมวดหมู่
+  const handleCategoryChange = (category, checked) => {
+    if (checked) {
+      setSelectedCategories([...selectedCategories, category]);
+    } else {
+      setSelectedCategories(selectedCategories.filter(cat => cat !== category));
+    }
+  };
+
+  // ฟังก์ชันจัดการปุ่มกรอง
+  const handleFilterAll = () => {
+    setFilterType('all');
+    setSelectedCategories([]);
+  };
+
+  const handleFilterByDate = () => {
+    setFilterType('sorted');
+  };
+
+  const handleTogglePastEvents = () => {
+    setShowPastEvents(!showPastEvents);
+  };
+
+  // นับจำนวนงานที่ผ่านไปแล้ว
+  const getPastEventsCount = () => {
+    return allEvents.filter(event => isEventPast(event.date)).length;
+  };
 
   // Generate calendar data
   const generateCalendarDays = () => {
@@ -123,10 +197,14 @@ const Events = () => {
     const dayStr = day.toString().padStart(2, '0');
     const dateString = `${yearStr}-${monthStr}-${dayStr}`;
     
-    // ตรวจสอบว่ามี event ในวันนั้นหรือไม่
-    return events.some(event => {
-      return event.date === dateString;
-    });
+    // ตรวจสอบว่ามี event ในวันนั้นหรือไม่ (ใช้ allEvents แต่กรองตามการตั้งค่าแสดงงานผ่านไป)
+    const eventsOnDate = allEvents.filter(event => event.date === dateString);
+    
+    if (showPastEvents) {
+      return eventsOnDate.length > 0;
+    } else {
+      return eventsOnDate.filter(event => !isEventPast(event.date)).length > 0;
+    }
   };
 
   // ดึงข้อมูล event ที่จัดขึ้นในวันที่ระบุ
@@ -138,9 +216,46 @@ const Events = () => {
     const dayStr = day.toString().padStart(2, '0');
     const dateString = `${yearStr}-${monthStr}-${dayStr}`;
     
-    return events.filter(event => {
-      return event.date === dateString;
-    });
+    // กรองตามการตั้งค่าแสดงงานผ่านไป
+    const eventsOnDate = allEvents.filter(event => event.date === dateString);
+    
+    if (showPastEvents) {
+      return eventsOnDate;
+    } else {
+      return eventsOnDate.filter(event => !isEventPast(event.date));
+    }
+  };
+
+  // ฟังก์ชันจัดการเมื่อคลิกที่วันที่ในปฏิทิน
+  const handleDateClick = (day) => {
+    if (!day) return;
+    
+    const eventsOnDate = getEventsForDate(day);
+    if (eventsOnDate.length > 0) {
+      const yearStr = selectedYear.toString();
+      const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
+      const dayStr = day.toString().padStart(2, '0');
+      const dateString = `${yearStr}-${monthStr}-${dayStr}`;
+      
+      setSelectedDate({
+        date: dateString,
+        day: day,
+        events: eventsOnDate,
+        formattedDate: new Date(selectedYear, selectedMonth, day).toLocaleDateString('th-TH', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          calendar: 'gregory'
+        })
+      });
+      setShowDateEvents(true);
+    }
+  };
+
+  // ฟังก์ชันปิด modal แสดงกิจกรรมในวันที่เลือก
+  const closeDateEvents = () => {
+    setShowDateEvents(false);
+    setSelectedDate(null);
   };
 
   return (
@@ -240,7 +355,7 @@ const Events = () => {
                       return (
                         <div 
                           key={index} 
-                          className={`h-10 flex items-center justify-center rounded-lg text-sm relative ${
+                          className={`h-10 flex items-center justify-center rounded-lg text-sm relative cursor-pointer transition-all ${
                             day 
                               ? 'hover:bg-muted' 
                               : ''
@@ -252,10 +367,11 @@ const Events = () => {
                               : ''
                           } ${
                             hasEvents
-                              ? 'bg-yellow-100 border-2 border-yellow-400 text-yellow-800 font-semibold'
+                              ? 'bg-yellow-100 border-2 border-yellow-400 text-yellow-800 font-semibold hover:bg-yellow-200'
                               : ''
                           }`}
-                          title={hasEvents ? `${eventsOnThisDate.length} กิจกรรมในวันนี้: ${eventsOnThisDate.map(e => e.title).join(', ')}` : ''}
+                          title={hasEvents ? `${eventsOnThisDate.length} กิจกรรมในวันนี้: ${eventsOnThisDate.map(e => e.title).join(', ')} (คลิกเพื่อดูรายละเอียด)` : ''}
+                          onClick={() => handleDateClick(day)}
                         >
                           {day}
                           {hasEvents && (
@@ -275,12 +391,28 @@ const Events = () => {
                           <input 
                             type="checkbox" 
                             id={category} 
+                            checked={selectedCategories.includes(category)}
+                            onChange={(e) => handleCategoryChange(category, e.target.checked)}
                             className="mr-2 h-4 w-4 text-primary"
                           />
-                          <label htmlFor={category} className="text-sm">{category}</label>
+                          <label htmlFor={category} className="text-sm cursor-pointer">{category}</label>
                         </div>
                       ))}
                     </div>
+                    
+                    {/* ปุ่มล้างการเลือก */}
+                    {selectedCategories.length > 0 && (
+                      <div className="mt-3">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setSelectedCategories([])}
+                          className="text-xs"
+                        >
+                          ล้างการเลือก
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -290,10 +422,36 @@ const Events = () => {
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h2 className="text-3xl font-bold">กิจกรรมที่กำลังจะมาถึง</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {filterType === 'sorted' && 'เรียงตามวันที่'}
+                      {selectedCategories.length > 0 && ` • กรองตาม: ${selectedCategories.join(', ')}`}
+                      {filterType === 'all' && selectedCategories.length === 0 && !showPastEvents && 'แสดงเฉพาะงานที่ยังไม่ผ่านไป'}
+                      {showPastEvents && 'รวมงานที่ผ่านไปแล้ว'}
+                      {!showPastEvents && getPastEventsCount() > 0 && ` (ซ่อนงานที่ผ่านไป ${getPastEventsCount()} รายการ)`}
+                    </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline">ทั้งหมด</Button>
-                    <Button variant="outline">เรียงตามวันที่</Button>
+                    <Button 
+                      variant={filterType === 'all' && selectedCategories.length === 0 ? 'default' : 'outline'}
+                      onClick={handleFilterAll}
+                    >
+                      ทั้งหมด
+                    </Button>
+                    <Button 
+                      variant={filterType === 'sorted' ? 'default' : 'outline'}
+                      onClick={handleFilterByDate}
+                    >
+                      เรียงตามวันที่
+                    </Button>
+                    {getPastEventsCount() > 0 && (
+                      <Button 
+                        variant={showPastEvents ? 'default' : 'outline'}
+                        onClick={handleTogglePastEvents}
+                        size="sm"
+                      >
+                        {showPastEvents ? 'ซ่อนงานผ่านไป' : `แสดงงานผ่านไป (${getPastEventsCount()})`}
+                      </Button>
+                    )}
                   </div>
                 </div>
                 
@@ -369,10 +527,10 @@ const Events = () => {
         {/* Featured Events */}
         <section className="py-12 bg-muted/30">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-8">กิจกรรมเด่น</h2>
+            <h2 className="text-3xl font-bold text-center mb-8">กิจกรรมล่าสุด</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {events.slice(0, 3).map((event) => (
+              {getFilteredAndSortedEvents().slice(0, 3).map((event) => (
                 <div 
                   key={event.id} 
                   className="bg-card rounded-xl overflow-hidden shadow-sm border border-border hover:shadow-md transition-all"
@@ -514,6 +672,119 @@ const Events = () => {
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3">
                 <Button variant="outline" onClick={closeEventDetail}>
+                  ปิด
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Date Events Modal */}
+      {showDateEvents && selectedDate && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground mb-2">
+                    กิจกรรมวันที่ {selectedDate.formattedDate}
+                  </h2>
+                  <span className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full">
+                    {selectedDate.events.length} กิจกรรม
+                  </span>
+                </div>
+                <button
+                  onClick={closeDateEvents}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              {/* Events List */}
+              <div className="space-y-4">
+                {selectedDate.events.map((event, index) => (
+                  <div 
+                    key={event.id || index}
+                    className="bg-muted/30 rounded-xl p-4 hover:bg-muted/50 transition-all cursor-pointer"
+                    onClick={() => {
+                      closeDateEvents();
+                      handleViewDetails(event);
+                    }}
+                  >
+                    <div className="flex flex-col md:flex-row gap-4">
+                      <div className="md:w-1/4">
+                        <img 
+                          src={event.image} 
+                          alt={event.title}
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                      </div>
+                      <div className="md:w-3/4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-lg font-semibold">{event.title}</h3>
+                          <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+                            {event.category}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-muted-foreground">
+                          <div className="flex items-center">
+                            <Clock className="h-4 w-4 mr-2" />
+                            <span>{event.time}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <MapPin className="h-4 w-4 mr-2" />
+                            <span>{event.location}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Users className="h-4 w-4 mr-2" />
+                            <span>{event.attendees?.toLocaleString() || 0} คนเข้าร่วม</span>
+                          </div>
+                          {(event.packages && event.packages.length > 0) || event.isFreeEvent ? (
+                            <div className="flex items-center">
+                              <DollarSign className="h-4 w-4 mr-2" />
+                              <span>
+                                {event.isFreeEvent ? 'ฟรี' : 
+                                 event.packages && event.packages.length > 0 ? 
+                                   `เริ่มต้น ${formatPrice(event.packages[0].price)}` : 
+                                   'ไม่ระบุราคา'
+                                }
+                              </span>
+                            </div>
+                          ) : null}
+                        </div>
+                        
+                        {event.description && (
+                          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                            {event.description}
+                          </p>
+                        )}
+                        
+                        <div className="mt-3">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              closeDateEvents();
+                              handleViewDetails(event);
+                            }}
+                          >
+                            ดูรายละเอียด
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex justify-end mt-6">
+                <Button variant="outline" onClick={closeDateEvents}>
                   ปิด
                 </Button>
               </div>
