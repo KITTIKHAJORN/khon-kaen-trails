@@ -4,30 +4,40 @@ import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, Clock, MapPin, Tag, Users, Image } from 'lucide-react';
+import { Calendar, Clock, MapPin, Tag, Users, Image, Plus, Minus, DollarSign } from 'lucide-react';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-// Prefill with first sample event
+// Empty default values for clean form experience
 const sample = {
-  title: 'งานบุญบั้งไฟขอนแก่น',
-  date: '2024-04-15',
-  time: '18:00 - 22:00',
-  location: 'สนามกีฬากลางขอนแก่น',
-  image: 'https://placehold.co/400x300',
-  attendees: 5000,
-  category: 'เทศกาล',
+  title: '',
+  date: '', // ให้ผู้ใช้เลือกวันที่เอง
+  time: '',
+  location: '',
+  image: '',
+  attendees: '',
+  category: '',
 };
 
 const CreateEvent = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [title, setTitle] = useState(sample.title);
-  const [date, setDate] = useState(sample.date);
+  const [date, setDate] = useState(sample.date); // เริ่มต้นเป็นค่าว่าง
   const [time, setTime] = useState(sample.time);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [startTime, setStartTime] = useState('11:00');
+  const [endTime, setEndTime] = useState('18:00');
+  const [timeFormat, setTimeFormat] = useState('24'); // '12' for AM/PM, '24' for 24-hour
   const [location, setLocation] = useState(sample.location);
   const [image, setImage] = useState(sample.image);
   const [category, setCategory] = useState(sample.category);
-  const [attendees, setAttendees] = useState(String(sample.attendees));
-  const [description, setDescription] = useState(`รายละเอียดของ ${sample.title}`);
+  const [attendees, setAttendees] = useState(sample.attendees);
+  const [description, setDescription] = useState('');
+  const [packages, setPackages] = useState([
+    { id: 1, name: '', price: '', description: '' }
+  ]);
+  const [isFreeEvent, setIsFreeEvent] = useState(false);
 
 
   const steps = [
@@ -38,45 +48,151 @@ const CreateEvent = () => {
   ];
 
   const categories = ['เทศกาล', 'คอนเสิร์ต', 'นิทรรศการ', 'กีฬา', 'การกุศล', 'ธุรกิจ', 'การประชุม', 'อบรม'];
-  const next = () => setStep((s) => Math.min(s + 1, steps.length - 1));
+  
+  // ฟังก์ชันตรวจสอบความครบถ้วนของข้อมูลในแต่ละ step
+  const validateStep = (stepNumber) => {
+    switch (stepNumber) {
+      case 0: // ข้อมูลพื้นฐาน
+        return title.trim() !== '' && description.trim() !== '' && category !== '';
+      
+      case 1: // วันเวลาและสถานที่
+        return date !== '' && time.trim() !== '' && location.trim() !== '';
+      
+      case 2: // รายละเอียด
+        const hasValidAttendees = attendees !== '' && parseInt(attendees) > 0;
+        const hasValidPackages = isFreeEvent || packages.some(pkg => 
+          pkg.name.trim() !== '' && pkg.price !== '' && pkg.description.trim() !== ''
+        );
+        return hasValidAttendees && hasValidPackages;
+      
+      default:
+        return true;
+    }
+  };
+  
+  // ฟังก์ชันสำหรับข้อความ error ของแต่ละ step
+  const getStepErrorMessage = (stepNumber) => {
+    switch (stepNumber) {
+      case 0:
+        const missingBasic = [];
+        if (title.trim() === '') missingBasic.push('ชื่องาน');
+        if (description.trim() === '') missingBasic.push('รายละเอียด');
+        if (category === '') missingBasic.push('หมวดหมู่');
+        return `กรุณากรอกข้อมูลต่อไปนี้ให้ครบถ้วน: ${missingBasic.join(', ')}`;
+      
+      case 1:
+        const missingDateTime = [];
+        if (date === '') missingDateTime.push('วันที่');
+        if (time.trim() === '') missingDateTime.push('เวลา');
+        if (location.trim() === '') missingDateTime.push('สถานที่');
+        return `กรุณากรอกข้อมูลต่อไปนี้ให้ครบถ้วน: ${missingDateTime.join(', ')}`;
+      
+      case 2:
+        const missingDetails = [];
+        if (attendees === '' || parseInt(attendees) <= 0) missingDetails.push('จำนวนผู้เข้าร่วม');
+        if (!isFreeEvent && !packages.some(pkg => pkg.name.trim() !== '' && pkg.price !== '' && pkg.description.trim() !== '')) {
+          missingDetails.push('ข้อมูลแพ็คเกจ');
+        }
+        return `กรุณากรอกข้อมูลต่อไปนี้ให้ครบถ้วน: ${missingDetails.join(', ')}`;
+      
+      default:
+        return '';
+    }
+  };
+  
+  const next = () => {
+    if (validateStep(step)) {
+      setStep((s) => Math.min(s + 1, steps.length - 1));
+    } else {
+      alert(getStepErrorMessage(step));
+    }
+  };
+  
   const back = () => setStep((s) => Math.max(s - 1, 0));
+
+  const saveEventAndRedirect = () => {
+    // สร้าง event object เพื่อบันทึก
+    const newEvent = {
+      id: Date.now(), // ใช้ timestamp เป็น unique ID
+      title,
+      date,
+      time,
+      location,
+      image: image || 'https://placehold.co/400x300',
+      attendees: parseInt(attendees) || 0,
+      category,
+      description,
+      packages: isFreeEvent ? [] : packages,
+      isFreeEvent,
+      isRegistered: false,
+      createdBy: 'user@example.com', // อาจจะเปลี่ยนเป็น user จริงในอนาคต
+      createdAt: new Date().toISOString()
+    };
+    
+    // ดึงข้อมูลเก่าจาก localStorage
+    const existingEvents = JSON.parse(localStorage.getItem('khonKaenEvents') || '[]');
+    const updatedEvents = [newEvent, ...existingEvents];
+    localStorage.setItem('khonKaenEvents', JSON.stringify(updatedEvents));
+    
+    // Event created successfully - redirect to events page
+    console.log(`งานเทศกาลถูกสร้างเรียบร้อย: ${title} วันที่ ${date}`);
+    
+    // ไปยังหน้า Events
+    navigate('/events');
+  };
+
+  const formatTime12Hour = (time24: string) => {
+    const [hours, minutes] = time24.split(':');
+    const hour = parseInt(hours);
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${hour12.toString().padStart(2, '0')}:${minutes}${period}`;
+  };
+
+  const handleTimeSelection = () => {
+    if (timeFormat === '12') {
+      const formattedStartTime = formatTime12Hour(startTime);
+      const formattedEndTime = formatTime12Hour(endTime);
+      setTime(`${formattedStartTime} - ${formattedEndTime}`);
+    } else {
+      setTime(`${startTime} - ${endTime}`);
+    }
+    setShowTimePicker(false);
+  };
+
+  const addPackage = () => {
+    const newId = Math.max(...packages.map(p => p.id)) + 1;
+    setPackages([...packages, {
+      id: newId,
+      name: '',
+      price: '',
+      description: ''
+    }]);
+  };
+
+  const removePackage = (id: number) => {
+    if (packages.length > 1) {
+      setPackages(packages.filter(p => p.id !== id));
+    }
+  };
+
+  const updatePackage = (id: number, field: string, value: string) => {
+    setPackages(packages.map(p => 
+      p.id === id ? { ...p, [field]: value } : p
+    ));
+  };
+
+  const formatPrice = (price: string) => {
+    if (!price || price === '0') {
+      return 'Free';
+    }
+    return `${price} บาท`;
+  };
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    
-    // Validate required fields only on final submission
-    if (!title.trim()) {
-      alert('กรุณากรอกชื่องานเทศกาล/กิจกรรม');
-      return;
-    }
-    if (!description.trim()) {
-      alert('กรุณากรอกรายละเอียด');
-      return;
-    }
-    if (!category.trim()) {
-      alert('กรุณาเลือกหมวดหมู่');
-      return;
-    }
-    if (!date) {
-      alert('กรุณาเลือกวันที่จัดงาน');
-      return;
-    }
-    if (!time.trim()) {
-      alert('กรุณากรอกเวลา');
-      return;
-    }
-    if (!location.trim()) {
-      alert('กรุณากรอกสถานที่');
-      return;
-    }
-    if (!attendees.trim()) {
-      alert('กรุณากรอกจำนวนผู้เข้าร่วม');
-      return;
-    }
-    
-    if (confirm(`คุณต้องการสร้างงานเทศกาล "${title}" วันที่ ${date} หรือไม่?`)) {
-      alert(`งานเทศกาลถูกสร้างเรียบร้อย: ${title} วันที่ ${date}`);
-    }
+    // ฟังก์ชันนี้ใช้สำหรับ form submission แต่ไม่ได้ใช้สร้าง event
+    // การสร้าง event จะใช้ saveEventAndRedirect ใน step 4 แทน
   };
 
   return (
@@ -140,10 +256,15 @@ const CreateEvent = () => {
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="เช่น งานบุญบั้งไฟขอนแก่น"
+                            className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 ${
+                              title.trim() === '' ? 'border-red-300 focus:ring-red-500' : 'border-border focus:ring-primary'
+                            }`}
+                            placeholder="ใส่ชื่องานเทศกาล/กิจกรรม"
                           />
                         </div>
+                        {title.trim() === '' && (
+                          <p className="text-red-500 text-xs mt-1">กรุณากรอกชื่องานเทศกาล/กิจกรรม</p>
+                        )}
                       </div>
 
                       <div>
@@ -154,9 +275,14 @@ const CreateEvent = () => {
                           value={description}
                           onChange={(e) => setDescription(e.target.value)}
                           rows={4}
-                          className="w-full px-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                          className={`w-full px-4 py-3 border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 resize-none ${
+                            description.trim() === '' ? 'border-red-300 focus:ring-red-500' : 'border-border focus:ring-primary'
+                          }`}
                           placeholder="อธิบายรายละเอียดของงานเทศกาล/กิจกรรม..."
                         />
+                        {description.trim() === '' && (
+                          <p className="text-red-500 text-xs mt-1">กรุณากรอกรายละเอียดของงาน</p>
+                        )}
                       </div>
 
                       <div>
@@ -168,7 +294,9 @@ const CreateEvent = () => {
                           <select
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                            className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 ${
+                              category === '' ? 'border-red-300 focus:ring-red-500' : 'border-border focus:ring-primary'
+                            }`}
                           >
                             <option value="">เลือกหมวดหมู่</option>
                             {categories.map((cat) => (
@@ -176,6 +304,9 @@ const CreateEvent = () => {
                             ))}
                           </select>
                         </div>
+                        {category === '' && (
+                          <p className="text-red-500 text-xs mt-1">กรุณาเลือกหมวดหมู่</p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -195,9 +326,14 @@ const CreateEvent = () => {
                               type="date"
                               value={date}
                               onChange={(e) => setDate(e.target.value)}
-                              className="w-full pl-10 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                              className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 ${
+                                date === '' ? 'border-red-300 focus:ring-red-500' : 'border-border focus:ring-primary'
+                              }`}
                             />
                           </div>
+                          {date === '' && (
+                            <p className="text-red-500 text-xs mt-1">กรุณาเลือกวันที่จัดงาน</p>
+                          )}
                         </div>
 
                         <div>
@@ -210,10 +346,86 @@ const CreateEvent = () => {
                               type="text"
                               value={time}
                               onChange={(e) => setTime(e.target.value)}
-                              className="w-full pl-10 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                              className={`w-full pl-10 pr-12 py-3 border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 ${
+                                time.trim() === '' ? 'border-red-300 focus:ring-red-500' : 'border-border focus:ring-primary'
+                              }`}
                               placeholder="เช่น 18:00 - 22:00"
                             />
+                            <button
+                              type="button"
+                              onClick={() => setShowTimePicker(!showTimePicker)}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                              <Clock className="w-5 h-5" />
+                            </button>
                           </div>
+                          {time.trim() === '' && (
+                            <p className="text-red-500 text-xs mt-1">กรุณากรอกเวลาจัดงาน</p>
+                          )}
+                          
+                          {showTimePicker && (
+                            <div className="mt-4 p-4 border border-border rounded-xl bg-card">
+                              <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-semibold text-foreground">กำหนดเวลา</h4>
+                                  <div className="flex gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => setTimeFormat('24')}
+                                      className={`px-3 py-1 text-xs rounded ${timeFormat === '24' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+                                    >
+                                      24ชม.
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setTimeFormat('12')}
+                                      className={`px-3 py-1 text-xs rounded ${timeFormat === '12' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+                                    >
+                                      AM/PM
+                                    </button>
+                                  </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-sm text-muted-foreground mb-1">เวลาเริ่มต้น</label>
+                                    <input
+                                      type="time"
+                                      value={startTime}
+                                      onChange={(e) => setStartTime(e.target.value)}
+                                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm text-muted-foreground mb-1">เวลาสิ้นสุด</label>
+                                    <input
+                                      type="time"
+                                      value={endTime}
+                                      onChange={(e) => setEndTime(e.target.value)}
+                                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                    />
+                                  </div>
+                                </div>
+                                
+                                <div className="flex gap-2 justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowTimePicker(false)}
+                                    className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
+                                  >
+                                    ยกเลิก
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={handleTimeSelection}
+                                    className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+                                  >
+                                    ตกลง
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -227,10 +439,15 @@ const CreateEvent = () => {
                             type="text"
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="เช่น สนามกีฬากลางขอนแก่น"
+                            className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 ${
+                              location.trim() === '' ? 'border-red-300 focus:ring-red-500' : 'border-border focus:ring-primary'
+                            }`}
+                            placeholder="ใส่ชื่อสถานที่จัดงาน"
                           />
                         </div>
+                        {location.trim() === '' && (
+                          <p className="text-red-500 text-xs mt-1">กรุณากรอกสถานที่จัดงาน</p>
+                        )}
                       </div>
 
                       <div>
@@ -265,10 +482,112 @@ const CreateEvent = () => {
                             type="number"
                             value={attendees}
                             onChange={(e) => setAttendees(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                            className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 ${
+                              (attendees === '' || parseInt(attendees) <= 0) ? 'border-red-300 focus:ring-red-500' : 'border-border focus:ring-primary'
+                            }`}
                             placeholder="5000"
+                            min="1"
                           />
                         </div>
+                        {(attendees === '' || parseInt(attendees) <= 0) && (
+                          <p className="text-red-500 text-xs mt-1">กรุณากรอกจำนวนผู้เข้าร่วม (ต้องมากกว่า 0)</p>
+                        )}
+                      </div>
+
+                      {/* ค่าเข้าร่วมและแพ็คเกจ */}
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <label className="block text-sm font-medium text-foreground">
+                            ค่าเข้าร่วมและแพ็คเกจ *
+                          </label>
+                          <div className="flex items-center gap-3">
+                            <label className="flex items-center gap-2 text-sm">
+                              <input
+                                type="checkbox"
+                                checked={isFreeEvent}
+                                onChange={(e) => setIsFreeEvent(e.target.checked)}
+                                className="w-4 h-4 text-primary"
+                              />
+                              เข้าร่วมฟรี
+                            </label>
+                          </div>
+                        </div>
+
+                        {!isFreeEvent && (
+                          <div className="space-y-4">
+                            {!packages.some(pkg => pkg.name.trim() !== '' && pkg.price !== '' && pkg.description.trim() !== '') && (
+                              <p className="text-red-500 text-sm mb-2">กรุณากรอกข้อมูลแพ็คเกจอย่างน้อย 1 แพ็คเกจให้ครบถ้วน</p>
+                            )}
+                            {packages.map((pkg, index) => (
+                              <div key={pkg.id} className="border border-border rounded-xl p-4 bg-muted/30">
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="font-semibold text-foreground">แพ็คเกจที่ {index + 1}</h4>
+                                  {packages.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => removePackage(pkg.id)}
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      <Minus className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                  <div>
+                                    <label className="block text-sm text-muted-foreground mb-1">ชื่อแพ็คเกจ *</label>
+                                    <input
+                                      type="text"
+                                      value={pkg.name}
+                                      onChange={(e) => updatePackage(pkg.id, 'name', e.target.value)}
+                                      className={`w-full px-3 py-2 border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 ${
+                                        pkg.name.trim() === '' ? 'border-red-300 focus:ring-red-500' : 'border-border focus:ring-primary'
+                                      }`}
+                                      placeholder="เช่น แพ็คเกจทั่วไป"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm text-muted-foreground mb-1">ราคา (บาท) *</label>
+                                    <div className="relative">
+                                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                      <input
+                                        type="number"
+                                        value={pkg.price}
+                                        onChange={(e) => updatePackage(pkg.id, 'price', e.target.value)}
+                                        className={`w-full pl-10 pr-3 py-2 border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 ${
+                                          pkg.price === '' ? 'border-red-300 focus:ring-red-500' : 'border-border focus:ring-primary'
+                                        }`}
+                                        placeholder="100"
+                                        min="0"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm text-muted-foreground mb-1">คำอธิบายสั้น *</label>
+                                    <input
+                                      type="text"
+                                      value={pkg.description}
+                                      onChange={(e) => updatePackage(pkg.id, 'description', e.target.value)}
+                                      className={`w-full px-3 py-2 border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 ${
+                                        pkg.description.trim() === '' ? 'border-red-300 focus:ring-red-500' : 'border-border focus:ring-primary'
+                                      }`}
+                                      placeholder="รายละเอียดแพ็คเกจ"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            <button
+                              type="button"
+                              onClick={addPackage}
+                              className="w-full py-3 border-2 border-dashed border-border rounded-xl text-muted-foreground hover:text-foreground hover:border-foreground transition-colors flex items-center justify-center gap-2"
+                            >
+                              <Plus className="w-4 h-4" />
+                              เพิ่มแพ็คเกจใหม่
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       <div>
@@ -317,11 +636,33 @@ const CreateEvent = () => {
                             <p className="text-muted-foreground">จำนวนผู้เข้าร่วม:</p>
                             <p className="font-medium text-foreground">{attendees ? `${attendees} คน` : "-"}</p>
                           </div>
+                          <div>
+                            <p className="text-muted-foreground">ค่าเข้าร่วม:</p>
+                            <p className="font-medium text-foreground">
+                              {isFreeEvent ? 'เข้าร่วมฟรี' : `${packages.length} แพ็คเกจ`}
+                            </p>
+                          </div>
                         </div>
                         <div className="mt-4">
                           <p className="text-muted-foreground">รายละเอียด:</p>
                           <p className="font-medium text-foreground">{description || "-"}</p>
                         </div>
+                        
+                        {!isFreeEvent && packages.length > 0 && (
+                          <div className="mt-4">
+                            <p className="text-muted-foreground mb-2">แพ็คเกจค่าเข้าร่วม:</p>
+                            <div className="space-y-2">
+                              {packages.map((pkg, index) => (
+                                <div key={pkg.id} className="flex justify-between items-center p-2 bg-muted/20 rounded">
+                                  <span className="font-medium">{pkg.name || `แพ็คเกจที่ ${index + 1}`}</span>
+                                  <span className={`font-semibold ${pkg.price === '0' || !pkg.price ? 'text-green-600' : 'text-primary'}`}>
+                                    {formatPrice(pkg.price)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -335,16 +676,32 @@ const CreateEvent = () => {
                       {step > 0 ? 'ก่อนหน้า' : 'ยกเลิก'}
                     </Button>
                     
-                    <div className="flex gap-3">
-                      {step < steps.length - 1 ? (
-                        <Button onClick={next}>
-                          ถัดไป
-                        </Button>
-                      ) : (
-                        <Button type="submit" size="lg">
-                          ยืนยันการสร้างงานเทศกาล
-                        </Button>
+                    <div className="flex flex-col items-end gap-2">
+                      {step < steps.length - 1 && !validateStep(step) && (
+                        <p className="text-red-500 text-xs text-right max-w-md">
+                          {getStepErrorMessage(step)}
+                        </p>
                       )}
+                      <div className="flex gap-3">
+                        {step < steps.length - 1 ? (
+                          <Button 
+                            onClick={next}
+                            disabled={!validateStep(step)}
+                            className={!validateStep(step) ? 'opacity-50 cursor-not-allowed' : ''}
+                          >
+                            ถัดไป
+                          </Button>
+                        ) : (
+                          <Button 
+                            onClick={saveEventAndRedirect} 
+                            size="lg"
+                            disabled={!validateStep(0) || !validateStep(1) || !validateStep(2)}
+                            className={(!validateStep(0) || !validateStep(1) || !validateStep(2)) ? 'opacity-50 cursor-not-allowed' : ''}
+                          >
+                            ยืนยันการสร้างงานเทศกาล
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </form>
