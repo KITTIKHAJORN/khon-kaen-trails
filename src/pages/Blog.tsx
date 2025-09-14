@@ -2,71 +2,61 @@ import { Footer } from '@/components/Footer';
 import { Navigation } from '@/components/Navigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Calendar, Clock, Plus, Search, User } from 'lucide-react';
+import { Calendar, Plus, Search, User, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 const Blog = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [savedBlogPosts, setSavedBlogPosts] = useState([]);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Sample data for blog posts
-  const blogPosts = [
-    {
-      id: 1,
-      title: '10 คาเฟ่น่าไปในขอนแก่นที่คุณต้องลอง',
-      excerpt: 'ค้นพบคาเฟ่ที่มีบรรยากาศดีและกาแฟรสเลิศในเมืองขอนแก่น',
-      author: 'นักท่องเที่ยวขอนแก่น',
-      date: '2024-03-15',
-      readTime: '5 นาที',
-      category: 'คาเฟ่',
-      image: 'https://placehold.co/600x400',
-      featured: true,
-      createdBy: 'admin@example.com'
-    },
-    {
-      id: 2,
-      title: 'ทริปหนึ่งวันในขอนแก่น: แนะนำเส้นทางท่องเที่ยว',
-      excerpt: 'แผนการท่องเที่ยวแบบครบวันในเมืองขอนแก่นสำหรับนักท่องเที่ยว',
-      author: 'มัคคุเทศก์ท้องถิ่น',
-      date: '2024-03-10',
-      readTime: '7 นาที',
-      category: 'ทริป',
-      image: 'https://placehold.co/600x400',
-      featured: false,
-      createdBy: 'guide@example.com'
-    },
-    {
-      id: 3,
-      title: 'ประวัติศาสตร์และวัฒนธรรมวัดในขอนแก่น',
-      excerpt: 'สำรวจวัดสำคัญในขอนแก่นและเรียนรู้ประวัติศาสตร์ที่น่าสนใจ',
-      author: 'นักประวัติศาสตร์',
-      date: '2024-03-05',
-      readTime: '10 นาที',
-      category: 'วัฒนธรรม',
-      image: 'https://placehold.co/600x400',
-      featured: false,
-      createdBy: 'historian@example.com'
-    },
-    {
-      id: 4,
-      title: 'อาหารพื้นเมืองขอนแก่นที่ห้ามพลาด',
-      excerpt: 'ลิสต์อาหารพื้นเมืองของขอนแก่นที่คุณควรลองชิม',
-      author: 'เชฟอาหารท้องถิ่น',
-      date: '2024-02-28',
-      readTime: '6 นาที',
-      category: 'อาหาร',
-      image: 'https://placehold.co/600x400',
-      featured: true,
-      createdBy: 'chef@example.com'
-    },
-  ];
+  // Load saved blog posts from localStorage
+  useEffect(() => {
+    const loadSavedPosts = () => {
+      try {
+        const posts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+        setSavedBlogPosts(posts);
+        console.log('Loaded saved blog posts:', posts);
+      } catch (error) {
+        console.error('Error loading saved blog posts:', error);
+        setSavedBlogPosts([]);
+      }
+    };
+
+    loadSavedPosts();
+    
+    // Listen for localStorage changes (if user creates blog in another tab)
+    const handleStorageChange = () => {
+      loadSavedPosts();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Only use saved blog posts from localStorage (removed default sample data)
+  const allBlogPosts = savedBlogPosts;
 
   const categories = ['ทั้งหมด', 'คาเฟ่', 'ทริป', 'วัฒนธรรม', 'อาหาร', 'ธรรมชาติ'];
 
   const handleCreateBlog = () => {
     // Navigate to the create blog page where users can fill the form
     navigate('/create-blog');
+  };
+
+  const handleReadMore = (post) => {
+    setSelectedPost(post);
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setSelectedPost(null);
   };
 
   // verification now happens on the create page if needed
@@ -148,8 +138,22 @@ const Blog = () => {
               <div className="lg:col-span-2">
                 <h2 className="text-3xl font-bold mb-8">บทความล่าสุด</h2>
                 
-                <div className="space-y-8">
-                  {blogPosts.map((post) => (
+                {allBlogPosts.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="bg-card rounded-xl p-8 shadow-sm border border-border">
+                      <h3 className="text-xl font-semibold mb-4">ยังไม่มีบทความ</h3>
+                      <p className="text-muted-foreground mb-6">
+                        เริ่มต้นโดยการสร้างบทความแรกของคุณ
+                      </p>
+                      <Button onClick={handleCreateBlog}>
+                        <Plus className="mr-2 h-5 w-5" />
+                        เขียนบทความใหม่
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-8">
+                  {allBlogPosts.map((post) => (
                     <article 
                       key={post.id} 
                       className="bg-card rounded-xl overflow-hidden shadow-sm border border-border hover:shadow-md transition-all"
@@ -180,6 +184,11 @@ const Blog = () => {
                             <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
                               {post.category}
                             </span>
+                            {post.createdBy === 'user' && (
+                              <span className="bg-green-500/10 text-green-600 text-xs px-2 py-1 rounded-full">
+                                บทความใหม่
+                              </span>
+                            )}
                             {post.featured && (
                               <span className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded-full">
                                 บทความเด่น
@@ -199,20 +208,17 @@ const Blog = () => {
                               <Calendar className="h-4 w-4 mr-1" />
                               <span>{new Date(post.date).toLocaleDateString('th-TH')}</span>
                             </div>
-                            <div className="flex items-center">
-                              <Clock className="h-4 w-4 mr-1" />
-                              <span>{post.readTime}</span>
-                            </div>
                           </div>
                           
-                          <Button className="mt-4" variant="outline">
+                          <Button className="mt-4" variant="outline" onClick={() => handleReadMore(post)}>
                             อ่านเพิ่มเติม
                           </Button>
                         </div>
                       </div>
                     </article>
-                  ))}
+                  ))}  
                 </div>
+                )}
                 
                 {/* Pagination */}
                 <div className="flex justify-center mt-12">
@@ -241,8 +247,11 @@ const Blog = () => {
                 {/* Featured Posts */}
                 <div className="bg-card rounded-xl p-6 shadow-sm border border-border mb-8">
                   <h3 className="text-xl font-bold mb-4">บทความเด่น</h3>
-                  <div className="space-y-4">
-                    {blogPosts.filter(post => post.featured).map((post) => (
+                  {allBlogPosts.filter(post => post.featured).length === 0 ? (
+                    <p className="text-muted-foreground text-sm">ยังไม่มีบทความเด่น</p>
+                  ) : (
+                    <div className="space-y-4">
+                    {allBlogPosts.filter(post => post.featured).map((post) => (
                       <div key={post.id} className="flex gap-4 hover:bg-muted p-3 rounded-lg cursor-pointer">
                         <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0">
                           <img 
@@ -261,7 +270,8 @@ const Blog = () => {
                         </div>
                       </div>
                     ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Categories */}
@@ -306,6 +316,96 @@ const Blog = () => {
       </main>
       <Footer />
       <ScrollToTopButton />
+      
+      {/* Beautiful Blog Post Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+          {selectedPost && (
+            <div className="p-6">
+              <DialogHeader>
+                <DialogTitle className="text-2xl md:text-3xl font-bold text-left">
+                  {selectedPost.title}
+                </DialogTitle>
+              </DialogHeader>
+              
+              <div className={`space-y-6 mt-6 ${!selectedPost.image ? 'pt-4' : ''}`}>
+                {/* Post Meta Information */}
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground border-b pb-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+                      {selectedPost.category}
+                    </span>
+                    {selectedPost.createdBy === 'user' && (
+                      <span className="bg-green-500/10 text-green-600 text-xs px-2 py-1 rounded-full">
+                        บทความใหม่
+                      </span>
+                    )}
+                    {selectedPost.featured && (
+                      <span className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded-full">
+                        บทความเด่น
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center">
+                      <User className="h-4 w-4 mr-1" />
+                      <span>{selectedPost.author}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      <span>{new Date(selectedPost.date).toLocaleDateString('th-TH')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content Section with Flexible Layout */}
+                <div className={selectedPost.image ? 'space-y-6' : 'space-y-4'}>
+
+                {/* Featured Image */}
+                {selectedPost.image && (
+                  <div className="w-full rounded-xl overflow-hidden bg-gray-200">
+                    <img 
+                      src={selectedPost.image} 
+                      alt={selectedPost.title} 
+                      className="w-full h-auto object-cover"
+                      style={{ maxHeight: '500px' }}
+                    />
+                  </div>
+                )}
+
+                {/* Post Excerpt */}
+                {selectedPost.excerpt && (
+                  <div className="text-lg text-muted-foreground italic border-l-4 border-primary pl-4">
+                    {selectedPost.excerpt}
+                  </div>
+                )}
+
+                  {/* Post Content */}
+                  <div className="prose prose-gray max-w-none">
+                    <div className="text-foreground leading-relaxed whitespace-pre-wrap">
+                      {selectedPost.content || 'เนื้อหาบทความจะแสดงที่นี่...'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-between items-center pt-6 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    เผยแพร่เมื่อ {new Date(selectedPost.date).toLocaleDateString('th-TH', {
+                      year: 'numeric',
+                      month: 'long', 
+                      day: 'numeric'
+                    })}
+                  </div>
+                  <Button onClick={handleCloseDialog}>
+                    ปิด
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       
       {/* Creation is handled on a dedicated page */}
     </div>
