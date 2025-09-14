@@ -4,8 +4,8 @@ import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, Clock, MapPin, Tag, Users, Image, Plus, Minus, DollarSign } from 'lucide-react';
-import React, { useState } from 'react';
+import { Calendar, Clock, MapPin, Tag, Users, Image, Plus, Minus, DollarSign, Upload, X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Empty default values for clean form experience
@@ -31,6 +31,9 @@ const CreateEvent = () => {
   const [timeFormat, setTimeFormat] = useState('24'); // '12' for AM/PM, '24' for 24-hour
   const [location, setLocation] = useState(sample.location);
   const [image, setImage] = useState(sample.image);
+  const [imagePreview, setImagePreview] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const fileInputRef = useRef(null);
   const [category, setCategory] = useState(sample.category);
   const [attendees, setAttendees] = useState(sample.attendees);
   const [description, setDescription] = useState('');
@@ -187,6 +190,41 @@ const CreateEvent = () => {
       return 'Free';
     }
     return `${price} บาท`;
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // ตรวจสอบประเภทไฟล์
+      if (!file.type.startsWith('image/')) {
+        alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+        return;
+      }
+      
+      // ตรวจสอบขนาดไฟล์ (จำกัดที่ 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('ขนาดไฟล์ต้องไม่เกิน 5MB');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64String = event.target?.result as string;
+        setImage(base64String);
+        setImagePreview(base64String);
+        setImageFile(file);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImage('');
+    setImagePreview('');
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = (e?: React.FormEvent) => {
@@ -454,15 +492,68 @@ const CreateEvent = () => {
                         <label className="block text-sm font-medium text-foreground mb-2">
                           รูปภาพประกอบ
                         </label>
-                        <div className="relative">
-                          <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <input
-                            type="text"
-                            value={image}
-                            onChange={(e) => setImage(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="URL รูปภาพ หรือ https://placehold.co/400x300"
-                          />
+                        
+                        {/* Image Preview */}
+                        {(imagePreview || image) && (
+                          <div className="mb-4 relative inline-block">
+                            <img 
+                              src={imagePreview || image} 
+                              alt="Preview" 
+                              className="w-32 h-32 object-cover rounded-xl border border-border"
+                            />
+                            <button
+                              type="button"
+                              onClick={removeImage}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                        
+                        {/* Upload Section */}
+                        <div className="space-y-3">
+                          <div className="flex gap-3">
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="flex items-center gap-2 px-4 py-3 border border-border rounded-xl bg-background text-foreground hover:bg-muted transition-colors"
+                            >
+                              <Upload className="w-5 h-5" />
+                              อัปโหลดรูปภาพ
+                            </button>
+                            
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                            />
+                          </div>
+                          
+                          <div className="text-xs text-muted-foreground">
+                            ประเภทไฟล์ที่รองรับ: JPG, PNG, GIF (ขนาดไม่เกิน 5MB)
+                          </div>
+                          
+                          <div className="relative">
+                            <span className="text-sm text-muted-foreground">หรือใส่ URL รูปภาพ:</span>
+                            <div className="relative mt-1">
+                              <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                              <input
+                                type="text"
+                                value={!imagePreview ? image : ''}
+                                onChange={(e) => {
+                                  setImage(e.target.value);
+                                  setImagePreview('');
+                                  setImageFile(null);
+                                }}
+                                className="w-full pl-10 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="https://example.com/image.jpg"
+                                disabled={!!imagePreview}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
