@@ -5,7 +5,7 @@ import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { MapPin, Search, Filter, Navigation2, Star, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { usePlacesSearch, useKhonKaenPlaces, formatPlaceTypes, getPriceLevel, getPlaceCoordinates, type Place } from '@/hooks/usePlaces';
+import { usePlacesSearch, useKhonKaenPlaces, formatPlaceTypes, getPriceLevel, type Place } from '@/hooks/usePlaces';
 import { testApiResponse } from '@/api/mapapi';
 import { PlaceSearch } from '@/components/PlaceSearch';
 import { SimpleMap } from '@/components/SimpleMap';
@@ -53,26 +53,19 @@ const Map = () => {
     }
   };
 
-  // Filter places based on selected criteria - ใช้เฉพาะข้อมูลจาก API
+  // Filter places based on selected criteria
   const getFilteredPlaces = () => {
-    // ใช้เฉพาะข้อมูลจาก search results หรือ API categories
     let allPlaces: Place[] = [];
     
-    // ถ้ามีผลการค้นหา ให้ใช้ผลการค้นหา
-    if (places.length > 0) {
-      allPlaces = places;
+    // Combine all categories if no specific category is selected
+    if (selectedCategory.length === 0) {
+      allPlaces = [...restaurants, ...attractions, ...hotels, ...universities, ...malls];
     } else {
-      // ถ้าไม่มีการค้นหา ให้ใช้ข้อมูลจาก API categories
-      if (selectedCategory.length === 0) {
-        // แสดงเฉพาะข้อมูลจาก API (ไม่ใช้ fallback data)
-        allPlaces = [...restaurants, ...attractions, ...hotels, ...universities, ...malls];
-      } else {
-        if (selectedCategory.includes('ร้านอาหาร')) allPlaces.push(...restaurants);
-        if (selectedCategory.includes('สถานที่ท่องเที่ยว')) allPlaces.push(...attractions);
-        if (selectedCategory.includes('ที่พัก')) allPlaces.push(...hotels);
-        if (selectedCategory.includes('มหาวิทยาลัย')) allPlaces.push(...universities);
-        if (selectedCategory.includes('แหล่งช้อปปิ้ง')) allPlaces.push(...malls);
-      }
+      if (selectedCategory.includes('ร้านอาหาร')) allPlaces.push(...restaurants);
+      if (selectedCategory.includes('สถานที่ท่องเที่ยว')) allPlaces.push(...attractions);
+      if (selectedCategory.includes('ที่พัก')) allPlaces.push(...hotels);
+      if (selectedCategory.includes('มหาวิทยาลัย')) allPlaces.push(...universities);
+      if (selectedCategory.includes('แหล่งช้อปปิ้ง')) allPlaces.push(...malls);
     }
 
     // Filter by rating if selected
@@ -82,38 +75,15 @@ const Map = () => {
       );
     }
 
-    // ตรวจสอบว่าข้อมูลมาจาก API จริงและมีพิกัดครบถ้วน
-    const validPlaces = allPlaces.filter(place => {
-      const hasPlaceId = place.place_id; // ต้องมี place_id จาก Google Places API
-      const hasCoords = getPlaceCoordinates(place) !== null; // ตรวจสอบพิกัดด้วยฟังก์ชันใหม่
-      
-      if (!hasPlaceId) {
-        console.warn('Place without place_id:', place.name);
-      }
-      if (!hasCoords) {
-        console.warn('Place without coordinates:', place.name);
-      }
-      
-      return hasPlaceId && hasCoords;
-    });
+    // If we have search results, use those instead
+    if (places.length > 0) {
+      return places;
+    }
 
-    console.log('=== API Data Filter ===');
-    console.log('Raw places:', allPlaces.length);
-    console.log('Valid API places:', validPlaces.length);
-    
-    return validPlaces.slice(0, 50); // เพิ่มจำนวนสถานที่ที่แสดงเป็น 50
+    return allPlaces.slice(0, 20); // Limit to 20 places for performance
   };
 
   const filteredPlaces = getFilteredPlaces();
-
-  // Debug filtered places (เฉพาะเมื่อมีข้อมูล)
-  useEffect(() => {
-    if (filteredPlaces.length > 0) {
-      console.log('=== API Places Data ===');
-      console.log('Total places from API:', filteredPlaces.length);
-      console.log('Sample place:', filteredPlaces[0]);
-    }
-  }, [filteredPlaces]);
 
   // Handle category filter
   const handleCategoryChange = (category: string) => {
@@ -304,48 +274,17 @@ const Map = () => {
                     
                     {/* Debug Section */}
                     <div className="border-t pt-4">
-                      <div className="grid grid-cols-1 gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={fetchAllCategories}
-                          className="w-full"
-                          disabled={khonKaenLoading}
-                        >
-                          {khonKaenLoading ? '🔄 กำลังโหลด...' : '🔄 โหลดข้อมูลใหม่'}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={handleTestApi}
-                          className="w-full"
-                        >
-                          🔍 ทดสอบ API
-                        </Button>
-                      </div>
-                      <div className="text-xs text-muted-foreground text-center space-y-1 mt-2">
-                        <div className="bg-muted p-2 rounded text-left">
-                          <div>🏪 ร้านอาหาร: {restaurants.length}</div>
-                          <div>🏛️ สถานที่ท่องเที่ยว: {attractions.length}</div>
-                          <div>🏨 ที่พัก: {hotels.length}</div>
-                          <div>🏫 มหาวิทยาลัย: {universities.length}</div>
-                          <div>🛍️ ห้างสรรพสินค้า: {malls.length}</div>
-                          <div className="border-t pt-1 mt-1">
-                            <div>📍 แสดงบนแผนที่: {filteredPlaces.length}</div>
-                            <div>✅ มีพิกัดครบ: {filteredPlaces.filter(p => getPlaceCoordinates(p) !== null).length}</div>
-                          </div>
-                          {filteredPlaces.length > 0 && (() => {
-                            const coords = getPlaceCoordinates(filteredPlaces[0]);
-                            return coords ? (
-                              <div className="mt-1 text-xs">
-                                ตัวอย่าง: {filteredPlaces[0].name}<br/>
-                                📍 {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
-                              </div>
-                            ) : null;
-                          })()}
-                        </div>
-                        <p className="text-center">ตรวจสอบข้อมูลใน Console (F12)</p>
-                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleTestApi}
+                        className="w-full"
+                      >
+                        🔍 ทดสอบ API
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-1 text-center">
+                        ตรวจสอบข้อมูลใน Console
+                      </p>
                     </div>
                   </div>
                 </div>

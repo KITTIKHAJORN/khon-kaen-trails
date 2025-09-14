@@ -26,8 +26,7 @@ export const Navigation: React.FC = () => {
     { key: 'nav.explore', href: '/explore' },
     { key: 'nav.map', href: '/map' },
     { key: 'nav.itinerary', href: '/itinerary' },
-    { key: 'nav.events', href: '/events' },
-    { key: 'nav.tours', href: '/tours' },
+  { key: 'nav.events', href: '/events' },
     { key: 'nav.blog', href: '/blog' },
     { key: 'nav.booking', href: '/booking' },
     // Removed contact menu item as requested

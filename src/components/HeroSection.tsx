@@ -36,6 +36,7 @@ export const HeroSection: React.FC = () => {
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
             {t('hero.title')}
           </h1>
+         
 
           {/* Subtitle */}
           <h2 className="text-xl md:text-2xl mb-6 text-white/90 font-medium">

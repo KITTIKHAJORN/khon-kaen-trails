@@ -24,8 +24,7 @@ const translations = {
     'nav.explore': 'สำรวจ',
     'nav.map': 'แผนที่',
     'nav.itinerary': 'วางแผนทริป',
-    'nav.events': 'งานเทศกาล',
-    'nav.tours': 'ทัวร์',
+  'nav.events': 'งานเทศกาล',
     'nav.blog': 'บทความ',
     'nav.booking': 'จองที่พัก',
     'nav.contact': 'ติดต่อ',
@@ -46,12 +45,7 @@ const translations = {
     'events.subtitle': 'อย่าพลาดงานเด่นและเทศกาลประจำปีของขอนแก่น',
     'events.viewAll': 'ดูทั้งหมด',
     
-    // Tours
-    'tours.title': 'ทัวร์แนะนำ',
-    'tours.subtitle': 'ทัวร์คุณภาพจากผู้เชี่ยวชาญท้องถิ่น',
-    'tours.from': 'เริ่มต้น',
-    'tours.person': 'คน',
-    'tours.viewAll': 'ดูทัวร์ทั้งหมด',
+  // Tours (removed)
     
     // Weather
     'weather.title': 'สภาพอากาศ',
@@ -86,8 +80,7 @@ const translations = {
     'nav.explore': 'Explore',
     'nav.map': 'Map',
     'nav.itinerary': 'Itinerary',
-    'nav.events': 'Events',
-    'nav.tours': 'Tours',
+  'nav.events': 'Events',
     'nav.blog': 'Blog',
     'nav.booking': 'Booking',
     'nav.contact': 'Contact',
@@ -108,12 +101,7 @@ const translations = {
     'events.subtitle': "Don't miss Khon Kaen's featured events and annual festivals",
     'events.viewAll': 'View All',
     
-    // Tours
-    'tours.title': 'Recommended Tours',
-    'tours.subtitle': 'Quality tours by local experts',
-    'tours.from': 'From',
-    'tours.person': 'person',
-    'tours.viewAll': 'View All Tours',
+  // Tours (removed)
     
     // Weather
     'weather.title': 'Weather',

@@ -4,73 +4,163 @@ import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, Clock, FileText, Image, Tag, User } from 'lucide-react';
-import React, { useState } from 'react';
+import { Calendar, FileText, Image, Tag, User, Upload, X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+// Get current date in YYYY-MM-DD format
+const getCurrentDate = () => {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+};
 
 // Prefill using the first sample from Blog.tsx
 const sample = {
   title: '10 คาเฟ่น่าไปในขอนแก่นที่คุณต้องลอง',
   excerpt: 'ค้นพบคาเฟ่ที่มีบรรยากาศดีและกาแฟรสเลิศในเมืองขอนแก่น',
   author: 'นักท่องเที่ยวขอนแก่น',
-  date: '2024-03-15',
-  readTime: '5 นาที',
+  date: getCurrentDate(),
   category: 'คาเฟ่',
   image: 'https://placehold.co/600x400',
   featured: true,
 };
 
 const CreateBlog = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [title, setTitle] = useState(sample.title);
   const [excerpt, setExcerpt] = useState(sample.excerpt);
   const [content, setContent] = useState('เริ่มเขียนเนื้อหาของบทความที่นี่...');
   const [category, setCategory] = useState(sample.category);
   const [image, setImage] = useState(sample.image);
+  const [imagePreview, setImagePreview] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const fileInputRef = useRef(null);
   const [featured, setFeatured] = useState(sample.featured);
   const [author, setAuthor] = useState(sample.author);
-  const [date, setDate] = useState(sample.date);
-  const [readTime, setReadTime] = useState(sample.readTime);
+  const [date, setDate] = useState(getCurrentDate());
 
 
   const steps = [
     { id: 0, title: 'ข้อมูลพื้นฐาน', description: 'หัวเรื่องและรายละเอียด' },
     { id: 1, title: 'เนื้อหา/สื่อ', description: 'เนื้อหาและรูปภาพ' },
-    { id: 2, title: 'ข้อมูลเมตา', description: 'ผู้เขียนและวันที่' },
+    { id: 2, title: 'ข้อมูลส่วนตัว', description: 'ผู้เขียนและวันที่' },
     { id: 3, title: 'ตรวจสอบ', description: 'ตรวจสอบข้อมูล' }
   ];
 
   const categories = ['คาเฟ่', 'ร้านอาหาร', 'ท่องเที่ยว', 'วัฒนธรรม', 'ประวัติศาสตร์', 'ธรรมชาติ', 'ช้อปปิ้ง', 'บันเทิง'];
 
-  const next = () => setStep((s) => Math.min(s + 1, steps.length - 1));
-  const back = () => setStep((s) => Math.max(s - 1, 0));
+  const next = () => {
+    console.log('Moving to next step, current step:', step);
+    setStep((s) => Math.min(s + 1, steps.length - 1));
+  };
+  
+  const back = () => {
+    console.log('Moving to previous step, current step:', step);
+    setStep((s) => Math.max(s - 1, 0));
+  };
+
+  const goToStep = (stepIndex: number) => {
+    console.log('Jumping to step:', stepIndex);
+    setStep(stepIndex);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+        return;
+      }
+      
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('ขนาดไฟล์ต้องไม่เกิน 5MB');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64String = event.target?.result as string;
+        setImage(base64String);
+        setImagePreview(base64String);
+        setImageFile(file);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImage('');
+    setImagePreview('');
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     
+    console.log('Starting form submission...');
+    
     // Validate required fields only on final submission
     if (!title.trim()) {
-      alert('กรุณากรอกหัวเรื่อง');
+      console.log('Validation failed: title missing');
       return;
     }
     if (!excerpt.trim()) {
-      alert('กรุณากรอกคำโปรย');
+      console.log('Validation failed: excerpt missing');
       return;
     }
     if (!category.trim()) {
-      alert('กรุณาเลือกหมวดหมู่');
+      console.log('Validation failed: category missing');
       return;
     }
     if (!author.trim()) {
-      alert('กรุณากรอกชื่อผู้เขียน');
+      console.log('Validation failed: author missing');
       return;
     }
     if (!date) {
-      alert('กรุณาเลือกวันที่เผยแพร่');
+      console.log('Validation failed: date missing');
       return;
     }
     
-    if (confirm(`คุณต้องการสร้างบทความ "${title}" หรือไม่?`)) {
-      alert(`บทความถูกสร้างเรียบร้อย: ${title} โดย ${author}`);
+    console.log('All validations passed, saving blog post...');
+    
+    // Create blog post object
+    const newBlogPost = {
+      id: Date.now(), // Simple ID generation
+      title: title.trim(),
+      excerpt: excerpt.trim(),
+      content: content.trim(),
+      author: author.trim(),
+      date,
+      category: category.trim(),
+      image: image.trim() || 'https://placehold.co/600x400',
+      featured,
+      createdBy: 'user', // Mark as user-created
+      createdAt: new Date().toISOString()
+    };
+    
+    try {
+      // Get existing blog posts from localStorage
+      const existingPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+      
+      // Add new post to the beginning of the array
+      const updatedPosts = [newBlogPost, ...existingPosts];
+      
+      // Save back to localStorage
+      localStorage.setItem('blogPosts', JSON.stringify(updatedPosts));
+      
+      console.log('Blog post saved successfully:', newBlogPost);
+      console.log('Navigating to blog page...');
+      
+      // Navigate to blog page
+      navigate('/blog');
+    } catch (error) {
+      console.error('Error saving blog post:', error);
     }
   };
 
@@ -102,13 +192,16 @@ const CreateBlog = () => {
                   </div>
                   {steps.map((s) => (
                     <div key={s.id} className="flex flex-col items-center relative">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${
-                        step >= s.id 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'bg-muted text-muted-foreground'
-                      }`}>
+                      <button
+                        onClick={() => goToStep(s.id)}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors hover:scale-105 ${
+                          step >= s.id 
+                            ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        }`}
+                      >
                         {s.id + 1}
-                      </div>
+                      </button>
                       <div className="text-center mt-2 max-w-24">
                         <p className="text-xs font-medium text-foreground">{s.title}</p>
                         <p className="text-xs text-muted-foreground hidden md:block">{s.description}</p>
@@ -196,15 +289,68 @@ const CreateBlog = () => {
                         <label className="block text-sm font-medium text-foreground mb-2">
                           รูปปกบทความ
                         </label>
-                        <div className="relative">
-                          <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <input
-                            type="text"
-                            value={image}
-                            onChange={(e) => setImage(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="URL รูปภาพ หรือ https://placehold.co/600x400"
-                          />
+                        
+                        {/* Image Preview */}
+                        {(imagePreview || image) && (
+                          <div className="mb-4 relative inline-block">
+                            <img 
+                              src={imagePreview || image} 
+                              alt="Preview" 
+                              className="w-32 h-32 object-cover rounded-xl border border-border"
+                            />
+                            <button
+                              type="button"
+                              onClick={removeImage}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                        
+                        {/* Upload Section */}
+                        <div className="space-y-3">
+                          <div className="flex gap-3">
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="flex items-center gap-2 px-4 py-3 border border-border rounded-xl bg-background text-foreground hover:bg-muted transition-colors"
+                            >
+                              <Upload className="w-5 h-5" />
+                              อัปโหลดรูปภาพ
+                            </button>
+                            
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                            />
+                          </div>
+                          
+                          <div className="text-xs text-muted-foreground">
+                            ประเภทไฟล์ที่รองรับ: JPG, PNG, GIF (ขนาดไม่เกิน 5MB)
+                          </div>
+                          
+                          <div className="relative">
+                            <span className="text-sm text-muted-foreground">หรือใส่ URL รูปภาพ:</span>
+                            <div className="relative mt-1">
+                              <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                              <input
+                                type="text"
+                                value={!imagePreview ? image : ''}
+                                onChange={(e) => {
+                                  setImage(e.target.value);
+                                  setImagePreview('');
+                                  setImageFile(null);
+                                }}
+                                className="w-full pl-10 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="https://example.com/image.jpg"
+                                disabled={!!imagePreview}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
 
@@ -225,7 +371,7 @@ const CreateBlog = () => {
 
                   {step === 2 && (
                     <div className="space-y-6">
-                      <h2 className="text-2xl font-bold text-foreground mb-6">ข้อมูลเมตา</h2>
+                      <h2 className="text-2xl font-bold text-foreground mb-6">ข้อมูลส่วนตัว</h2>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -260,21 +406,6 @@ const CreateBlog = () => {
                         </div>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          เวลาอ่าน
-                        </label>
-                        <div className="relative max-w-md">
-                          <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <input
-                            type="text"
-                            value={readTime}
-                            onChange={(e) => setReadTime(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="เช่น 5 นาที"
-                          />
-                        </div>
-                      </div>
                     </div>
                   )}
 
@@ -302,10 +433,6 @@ const CreateBlog = () => {
                             <p className="font-medium text-foreground">{date ? new Date(date).toLocaleDateString('th-TH') : "-"}</p>
                           </div>
                           <div>
-                            <p className="text-muted-foreground">เวลาอ่าน:</p>
-                            <p className="font-medium text-foreground">{readTime || "-"}</p>
-                          </div>
-                          <div>
                             <p className="text-muted-foreground">บทความเด่น:</p>
                             <p className="font-medium text-foreground">{featured ? "ใช่" : "ไม่"}</p>
                           </div>
@@ -321,6 +448,7 @@ const CreateBlog = () => {
                   {/* Navigation Buttons */}
                   <div className="flex justify-between mt-8">
                     <Button 
+                      type="button"
                       onClick={step > 0 ? back : () => window.history.back()}
                       variant="outline"
                     >
@@ -329,7 +457,7 @@ const CreateBlog = () => {
                     
                     <div className="flex gap-3">
                       {step < steps.length - 1 ? (
-                        <Button onClick={next}>
+                        <Button type="button" onClick={next}>
                           ถัดไป
                         </Button>
                       ) : (
