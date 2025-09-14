@@ -12,12 +12,11 @@ import Blog from "./pages/Blog";
 import Booking from "./pages/Booking";
 import CreateBlog from "./pages/CreateBlog";
 import CreateEvent from "./pages/CreateEvent";
-import CreateTour from "./pages/CreateTour";
 import Events from "./pages/Events";
 import Explore from "./pages/Explore";
 import Itinerary from "./pages/Itinerary";
 import Map from "./pages/Map";
-import Tours from "./pages/Tours";
+// Tours page removed
 
 // Removed Contact import as requested
 
@@ -44,10 +43,9 @@ const AppContent = () => {
       <Route path="/map" element={<Map />} />
       <Route path="/itinerary" element={<Itinerary />} />
       <Route path="/events" element={<Events />} />
-      <Route path="/tours" element={<Tours />} />
+  {/* Tours page removed */}
       <Route path="/blog" element={<Blog />} />
   <Route path="/create-blog" element={<CreateBlog />} />
-  <Route path="/create-tour" element={<CreateTour />} />
   <Route path="/create-event" element={<CreateEvent />} />
       <Route path="/booking" element={<Booking />} />
       {/* Removed Contact route as requested */}
