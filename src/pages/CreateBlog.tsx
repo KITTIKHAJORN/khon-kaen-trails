@@ -4,16 +4,22 @@ import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, FileText, Image, Tag, User } from 'lucide-react';
-import React, { useState } from 'react';
+import { Calendar, FileText, Image, Tag, User, Upload, X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+// Get current date in YYYY-MM-DD format
+const getCurrentDate = () => {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+};
 
 // Prefill using the first sample from Blog.tsx
 const sample = {
   title: '10 คาเฟ่น่าไปในขอนแก่นที่คุณต้องลอง',
   excerpt: 'ค้นพบคาเฟ่ที่มีบรรยากาศดีและกาแฟรสเลิศในเมืองขอนแก่น',
   author: 'นักท่องเที่ยวขอนแก่น',
-  date: '2024-03-15',
+  date: getCurrentDate(),
   category: 'คาเฟ่',
   image: 'https://placehold.co/600x400',
   featured: true,
@@ -27,9 +33,12 @@ const CreateBlog = () => {
   const [content, setContent] = useState('เริ่มเขียนเนื้อหาของบทความที่นี่...');
   const [category, setCategory] = useState(sample.category);
   const [image, setImage] = useState(sample.image);
+  const [imagePreview, setImagePreview] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const fileInputRef = useRef(null);
   const [featured, setFeatured] = useState(sample.featured);
   const [author, setAuthor] = useState(sample.author);
-  const [date, setDate] = useState(sample.date);
+  const [date, setDate] = useState(getCurrentDate());
 
 
   const steps = [
@@ -54,6 +63,41 @@ const CreateBlog = () => {
   const goToStep = (stepIndex: number) => {
     console.log('Jumping to step:', stepIndex);
     setStep(stepIndex);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+        return;
+      }
+      
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('ขนาดไฟล์ต้องไม่เกิน 5MB');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64String = event.target?.result as string;
+        setImage(base64String);
+        setImagePreview(base64String);
+        setImageFile(file);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImage('');
+    setImagePreview('');
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = (e?: React.FormEvent) => {
@@ -245,15 +289,68 @@ const CreateBlog = () => {
                         <label className="block text-sm font-medium text-foreground mb-2">
                           รูปปกบทความ
                         </label>
-                        <div className="relative">
-                          <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <input
-                            type="text"
-                            value={image}
-                            onChange={(e) => setImage(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="URL รูปภาพ หรือ https://placehold.co/600x400"
-                          />
+                        
+                        {/* Image Preview */}
+                        {(imagePreview || image) && (
+                          <div className="mb-4 relative inline-block">
+                            <img 
+                              src={imagePreview || image} 
+                              alt="Preview" 
+                              className="w-32 h-32 object-cover rounded-xl border border-border"
+                            />
+                            <button
+                              type="button"
+                              onClick={removeImage}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                        
+                        {/* Upload Section */}
+                        <div className="space-y-3">
+                          <div className="flex gap-3">
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="flex items-center gap-2 px-4 py-3 border border-border rounded-xl bg-background text-foreground hover:bg-muted transition-colors"
+                            >
+                              <Upload className="w-5 h-5" />
+                              อัปโหลดรูปภาพ
+                            </button>
+                            
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                            />
+                          </div>
+                          
+                          <div className="text-xs text-muted-foreground">
+                            ประเภทไฟล์ที่รองรับ: JPG, PNG, GIF (ขนาดไม่เกิน 5MB)
+                          </div>
+                          
+                          <div className="relative">
+                            <span className="text-sm text-muted-foreground">หรือใส่ URL รูปภาพ:</span>
+                            <div className="relative mt-1">
+                              <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                              <input
+                                type="text"
+                                value={!imagePreview ? image : ''}
+                                onChange={(e) => {
+                                  setImage(e.target.value);
+                                  setImagePreview('');
+                                  setImageFile(null);
+                                }}
+                                className="w-full pl-10 pr-4 py-3 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="https://example.com/image.jpg"
+                                disabled={!!imagePreview}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
 
