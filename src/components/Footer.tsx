@@ -1,14 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { LogoIcon } from '@/components/LogoIcon';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-import { 
-  Phone, 
-  Mail, 
-  Facebook, 
-  Instagram, 
-  Youtube,
+import {
+  Facebook,
+  Heart,
+  Instagram,
+  Mail,
+  MapPin,
+  Phone,
   Send,
   Youtube
 } from 'lucide-react';
@@ -28,7 +27,30 @@ export const Footer: React.FC = () => {
   return (
     <footer className="bg-primary text-primary-foreground">
       <div className="container mx-auto px-4">
-
+        {/* Newsletter Section */}
+        <div className="py-12 border-b border-primary-light/20">
+          <div className="max-w-4xl mx-auto text-center" data-aos="fade-up">
+            <h3 className="text-2xl font-bold mb-4">
+              {t('newsletter.title')}
+            </h3>
+            <p className="text-primary-foreground/80 mb-6 max-w-2xl mx-auto">
+              {t('newsletter.subtitle')}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+              <Input
+                type="email"
+                placeholder={t('newsletter.email')}
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:border-white/40"
+              />
+              <Button 
+                className="bg-secondary hover:bg-secondary-light text-secondary-foreground whitespace-nowrap shadow-gold"
+              >
+                <Send className="mr-2 h-4 w-4" />
+                {t('newsletter.subscribe')}
+              </Button>
+            </div>
+          </div>
+        </div>
 
         {/* Main Footer Content */}
         <div className="py-12">
@@ -37,7 +59,7 @@ export const Footer: React.FC = () => {
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
-                  <LogoIcon className="text-secondary-foreground" />
+                  <MapPin className="h-6 w-6 text-secondary-foreground" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">ขอนแก่นท่องเที่ยว</h2>
@@ -106,9 +128,7 @@ export const Footer: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5">
-                    <LogoIcon size="sm" className="text-secondary" fallbackIcon="📍" />
-                  </div>
+                  <MapPin className="h-4 w-4 mt-0.5 text-secondary" />
                   <div>
                     <p className="font-medium text-white">{t('footer.contact.address')}</p>
                     <p className="text-sm">
