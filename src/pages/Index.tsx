@@ -4,7 +4,7 @@ import { HeroSection } from '@/components/HeroSection';
 import { PopularDestinations } from '@/components/PopularDestinations';
 import { EventsSection } from '@/components/EventsSection';
 import { WeatherWidget } from '@/components/WeatherWidget';
-import { ToursSection } from '@/components/ToursSection';
+// ToursSection removed
 import { TestimonialsSection } from '@/components/TestimonialsSection';
 import { BlogPreviewSection } from '@/components/BlogPreviewSection';
 import { AdvertisementSection } from '@/components/AdvertisementSection';
@@ -20,7 +20,7 @@ const Index = () => {
         <PopularDestinations />
         <WeatherWidget />
         <EventsSection />
-        <ToursSection />
+  {/* ToursSection removed */}
         <TestimonialsSection />
         <BlogPreviewSection />
         <AdvertisementSection />

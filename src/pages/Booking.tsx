@@ -115,17 +115,7 @@ const Booking = () => {
                 <Car className="h-4 w-4 mr-2" />
                 รถเช่า
               </button>
-              <button
-                className={`px-6 py-3 font-medium flex items-center ${
-                  activeTab === 'tours'
-                    ? 'text-primary border-b-2 border-primary'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-                onClick={() => setActiveTab('tours')}
-              >
-                <Ticket className="h-4 w-4 mr-2" />
-                ทัวร์
-              </button>
+              {/* Tours tab removed */}
             </div>
           </div>
         </section>
@@ -207,7 +197,7 @@ const Booking = () => {
               <h2 className="text-3xl font-bold">
                 {activeTab === 'hotels' && 'ที่พัก'}
                 {activeTab === 'cars' && 'รถเช่า'}
-                {activeTab === 'tours' && 'ทัวร์'}
+                {/* tours tab removed */}
               </h2>
               <div className="flex gap-2">
                 <Button variant="outline">เรียงตามความนิยม</Button>
@@ -320,17 +310,7 @@ const Booking = () => {
               </div>
             )}
             
-            {activeTab === 'tours' && (
-              <div className="text-center py-12">
-                <h3 className="text-2xl font-bold mb-4">ค้นหาทัวร์ที่เหมาะกับคุณ</h3>
-                <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                  เลือกจากทัวร์หลากหลายประเภทที่เราคัดสรรมาเป็นพิเศษสำหรับคุณ
-                </p>
-                <Button size="lg">
-                  ดูทัวร์ทั้งหมด
-                </Button>
-              </div>
-            )}
+            {/* tours results removed */}
           </div>
         </section>
 

@@ -19,8 +19,7 @@ export const Footer: React.FC = () => {
   const quickLinks = [
     { key: 'nav.explore', href: '/explore' },
     { key: 'nav.map', href: '/map' },
-    { key: 'nav.events', href: '/events' },
-    { key: 'nav.tours', href: '/tours' },
+  { key: 'nav.events', href: '/events' },
     { key: 'nav.blog', href: '/blog' },
     { key: 'nav.booking', href: '/booking' },
   ];
