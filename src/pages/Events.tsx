@@ -3,6 +3,7 @@ import { Navigation } from '@/components/Navigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+
 import { Calendar, Clock, MapPin, Plus, Users, X, DollarSign } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -23,54 +24,14 @@ const Events = () => {
   const [selectedCategories, setSelectedCategories] = useState([]); // เก็บหมวดหมู่ที่เลือก
   const [showPastEvents, setShowPastEvents] = useState(false); // ตัวเลือกแสดงงานที่ผ่านไปแล้ว
 
-  // โหลดข้อมูลจาก localStorage เมื่อ component mount
+  // โหลดข้อมูลเฉพาะจาก localStorage เท่านั้น
   useEffect(() => {
     const savedEvents = JSON.parse(localStorage.getItem('khonKaenEvents') || '[]');
     setCustomEvents(savedEvents);
   }, []);
 
-  // Sample data for events
-  const sampleEvents = [
-    {
-      id: 1,
-      title: 'งานบุญบั้งไฟขอนแก่น',
-      date: '2024-09-14', // เปลี่ยนเป็นวันที่ 14 กันยายน
-      time: '18:00 - 22:00',
-      location: 'สนามกีฬากลางขอนแก่น',
-      image: 'https://placehold.co/400x300',
-      attendees: 5000,
-      category: 'เทศกาล',
-      isRegistered: false,
-      createdBy: 'admin@example.com'
-    },
-    {
-      id: 2,
-      title: 'งานเทศกาลผลไม้ขอนแก่น',
-      date: '2024-09-15', // เปลี่ยนเป็นวันที่ 15 กันยายน
-      time: '09:00 - 17:00',
-      location: 'ศูนย์แสดงสินค้าขอนแก่น',
-      image: 'https://placehold.co/400x300',
-      attendees: 3000,
-      category: 'เทศกาล',
-      isRegistered: true,
-      createdBy: 'admin@example.com'
-    },
-    {
-      id: 3,
-      title: 'คอนเสิร์ตกลางเมือง',
-      date: '2024-09-19', // เปลี่ยนเป็นวันที่ 19 กันยายน
-      time: '19:00 - 22:00',
-      location: 'สวนสาธารณะแก่นนคร',
-      image: 'https://placehold.co/400x300',
-      attendees: 2000,
-      category: 'คอนเสิร์ต',
-      isRegistered: false,
-      createdBy: 'user@example.com'
-    },
-  ];
-
-  // รวม sample events กับ custom events จาก localStorage
-  const allEvents = [...customEvents, ...sampleEvents];
+  // ใช้เฉพาะข้อมูลจาก localStorage
+  const allEvents = customEvents;
 
   // ฟังก์ชันตรวจสอบว่างานผ่านไปแล้วหรือไม่
   const isEventPast = (eventDate) => {

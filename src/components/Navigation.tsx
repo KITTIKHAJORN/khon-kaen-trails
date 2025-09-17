@@ -7,20 +7,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 
 export const Navigation: React.FC = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const navItems = [
     { key: 'nav.home', href: '/' },
@@ -39,17 +29,16 @@ export const Navigation: React.FC = () => {
   };
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isScrolled 
-        ? 'bg-background/95 backdrop-blur-md shadow-elegant border-b' 
-        : 'bg-transparent'
-    }`}>
+    <header className="sticky top-3 z-50 bg-background/95 backdrop-blur-md shadow-elegant mx-3 rounded-lg border border-primary/20">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigation('/')}>
-            <div className="w-10 h-10 bg-hero-gradient rounded-lg flex items-center justify-center shadow-warm">
-            </div>
+            <img 
+              src="/logo-icon.png" 
+              alt="Khon Kaen Tourism Logo" 
+              className="w-10 h-10 "
+            />
             <div className="hidden sm:block">
               <h1 className="text-xl font-bold text-primary">
                 ขอนแก่นท่องเที่ยว

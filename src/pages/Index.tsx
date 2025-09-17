@@ -1,28 +1,28 @@
-import { EventsSection } from '@/components/EventsSection';
+import React, { useEffect } from 'react';
 import { HeroSection } from '@/components/HeroSection';
 import { Navigation } from '@/components/Navigation';
 import { PopularDestinations } from '@/components/PopularDestinations';
 import { WeatherWidget } from '@/components/WeatherWidget';
-// ToursSection removed
-import { AdvertisementSection } from '@/components/AdvertisementSection';
-import { BlogPreviewSection } from '@/components/BlogPreviewSection';
 import { Footer } from '@/components/Footer';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
-import { TestimonialsSection } from '@/components/TestimonialsSection';
+import { LatestEvents } from '@/components/LatestEvents';
+import { LatestBlogs } from '@/components/LatestBlogs';
 
 const Index = () => {
+  useEffect(() => {
+    // Pre-load critical data for better user experience
+    console.log('🏠 Loading Khon Kaen Tourism Homepage with real API data');
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <main>
         <HeroSection />
         <PopularDestinations />
+        <LatestEvents />
+        <LatestBlogs />
         <WeatherWidget />
-        <EventsSection />
-  {/* ToursSection removed */}
-        <TestimonialsSection />
-        <BlogPreviewSection />
-        <AdvertisementSection />
       </main>
       <Footer />
       <ScrollToTopButton />

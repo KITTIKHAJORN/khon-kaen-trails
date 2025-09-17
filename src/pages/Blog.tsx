@@ -219,61 +219,10 @@ const Blog = () => {
                   ))}  
                 </div>
                 )}
-                
-                {/* Pagination */}
-                <div className="flex justify-center mt-12">
-                  <div className="flex gap-2">
-                    <Button variant="outline" disabled>
-                      ก่อนหน้า
-                    </Button>
-                    <Button variant="outline" className="bg-primary text-primary-foreground">
-                      1
-                    </Button>
-                    <Button variant="outline">
-                      2
-                    </Button>
-                    <Button variant="outline">
-                      3
-                    </Button>
-                    <Button variant="outline">
-                      ถัดไป
-                    </Button>
-                  </div>
-                </div>
               </div>
               
               {/* Sidebar */}
-              <div className="lg:col-span-1">
-                {/* Featured Posts */}
-                <div className="bg-card rounded-xl p-6 shadow-sm border border-border mb-8">
-                  <h3 className="text-xl font-bold mb-4">บทความเด่น</h3>
-                  {allBlogPosts.filter(post => post.featured).length === 0 ? (
-                    <p className="text-muted-foreground text-sm">ยังไม่มีบทความเด่น</p>
-                  ) : (
-                    <div className="space-y-4">
-                    {allBlogPosts.filter(post => post.featured).map((post) => (
-                      <div key={post.id} className="flex gap-4 hover:bg-muted p-3 rounded-lg cursor-pointer">
-                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0">
-                          <img 
-                            src={post.image} 
-                            alt={post.title} 
-                            loading="lazy"
-                            className="w-full h-full object-cover rounded-lg"
-                          />
-                        </div>
-                        <div>
-                          <h4 className="font-medium line-clamp-2">{post.title}</h4>
-                          <div className="flex items-center text-xs text-muted-foreground mt-1">
-                            <Calendar className="h-3 w-3 mr-1" />
-                            <span>{new Date(post.date).toLocaleDateString('th-TH')}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    </div>
-                  )}
-                </div>
-                
+              <div className="lg:col-span-1">   
                 {/* Categories */}
                 <div className="bg-card rounded-xl p-6 shadow-sm border border-border mb-8">
                   <h3 className="text-xl font-bold mb-4">หมวดหมู่บทความ</h3>
@@ -289,24 +238,6 @@ const Blog = () => {
                         </span>
                       </div>
                     ))}
-                  </div>
-                </div>
-                
-                {/* Newsletter */}
-                <div className="bg-gradient-to-r from-primary to-primary-light rounded-xl p-6 text-white">
-                  <h3 className="text-xl font-bold mb-2">รับบทความใหม่ๆ</h3>
-                  <p className="text-white/90 mb-4">
-                    สมัครรับจดหมายข่าวเพื่อรับบทความและคำแนะนำล่าสุด
-                  </p>
-                  <div className="space-y-3">
-                    <input 
-                      type="email" 
-                      placeholder="อีเมลของคุณ" 
-                      className="w-full px-4 py-2 rounded-lg text-foreground"
-                    />
-                    <Button className="w-full bg-white text-primary hover:bg-white/90">
-                      สมัครสมาชิก
-                    </Button>
                   </div>
                 </div>
               </div>
