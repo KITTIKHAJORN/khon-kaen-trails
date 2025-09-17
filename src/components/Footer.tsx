@@ -33,9 +33,6 @@ export const Footer: React.FC = () => {
             {/* Brand & Description */}
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
-                  <MapPin className="h-6 w-6 text-secondary-foreground" />
-                </div>
                 <div>
                   <h2 className="text-xl font-bold">ขอนแก่นท่องเที่ยว</h2>
                   <p className="text-sm text-primary-foreground/80">Khon Kaen Tourism</p>
@@ -114,16 +111,6 @@ export const Footer: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="py-6 border-t border-primary-light/20">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-primary-foreground/80">
-            <p>{t('footer.rights')}</p>
-            <p className="flex items-center gap-1">
-              Made with <Heart className="h-4 w-4 text-red-400 fill-current" /> in Khon Kaen
-            </p>
           </div>
         </div>
       </div>

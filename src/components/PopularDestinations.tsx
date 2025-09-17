@@ -159,15 +159,6 @@ export const PopularDestinations: React.FC = () => {
             </div>
           </div>
         )}
-
-        {/* View All Button */}
-        {destinations.length > 0 && (
-          <div className="text-center" data-aos="fade-up" data-aos-delay="400">
-            <Button size="lg" className="bg-hero-gradient text-white shadow-gold hover:opacity-90 px-8">
-              {t('destinations.viewAll')} ({[...restaurants, ...attractions, ...hotels].length}+)
-            </Button>
-          </div>
-        )}
       </div>
     </section>
   );

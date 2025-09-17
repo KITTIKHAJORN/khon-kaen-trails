@@ -1,60 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useAdvertisements } from '@/hooks/useAdvertisements';
 import { ExternalLink, Star, MapPin } from 'lucide-react';
 
-interface Advertisement {
-  id: number;
-  title: string;
-  subtitle: string;
-  image: string;
-  type: 'hotel' | 'restaurant' | 'tour' | 'shopping';
-  rating?: number;
-  price?: string;
-  location?: string;
-  badge?: string;
-  link: string;
-}
-
-const advertisements: Advertisement[] = [
-  {
-    id: 1,
-    title: 'โรงแรมพูลแมน ขอนแก่น ราชา ออคิด',
-    subtitle: 'โรงแรม 5 ดาวใจกลางเมืองขอนแก่น',
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop',
-    type: 'hotel',
-    rating: 4.6,
-    price: '2,500 บาท/คืน',
-    location: 'ใจกลางเมือง',
-    badge: 'จองเลย!',
-    link: '#'
-  },
-  {
-    id: 2,
-    title: 'ร้านอาหารบ้านสวนไผ่',
-    subtitle: 'อาหารอีสานแท้รสชาติดั้งเดิม',
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop',
-    type: 'restaurant',
-    rating: 4.8,
-    location: 'ริมบึงแก่นนคร',
-    badge: 'ยอดนิยม',
-    link: '#'
-  },
-  {
-    id: 3,
-    title: 'ทัวร์วัดป่าธรรมชาติ',
-    subtitle: 'ทัวร์ท่องเที่ยวเชิงวัฒนธรรม 1 วัน',
-    image: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=400&h=300&fit=crop',
-    type: 'tour',
-    price: '890 บาท/คน',
-    location: 'รอบจังหวัดขอนแก่น',
-    badge: 'ลดพิเศษ 20%',
-    link: '#'
-  }
-];
-
 export const AdvertisementSection: React.FC = () => {
+  const { advertisements, loading, error, fetchAdvertisements, clearError } = useAdvertisements();
+
+  useEffect(() => {
+    fetchAdvertisements();
+  }, [fetchAdvertisements]);
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'hotel':
@@ -84,6 +40,41 @@ export const AdvertisementSection: React.FC = () => {
         return 'สปอนเซอร์';
     }
   };
+
+  if (loading) {
+    return (
+      <section className="py-16 bg-accent/10">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">กำลังโหลดข้อมูลพาร์ทเนอร์...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-16 bg-accent/10">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="bg-destructive/10 border border-destructive/20 text-destructive px-6 py-4 rounded-lg mb-4">
+                <p className="font-medium">เกิดข้อผิดพลาดในการโหลดข้อมูลพาร์ทเนอร์</p>
+                <p className="text-sm mt-1">{error}</p>
+              </div>
+              <Button onClick={() => { clearError(); fetchAdvertisements(); }} variant="outline">
+                ลองใหม่
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-16 bg-accent/10">
